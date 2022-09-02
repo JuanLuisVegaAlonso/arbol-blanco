@@ -25,7 +25,13 @@ export function getCurrentVotation(self: RoundInfo) {
 }
 
 export function addResponse(self: RoundInfo, player: Player, response: string) {
-  self.responses = [...self.responses, { owner: player, message: response }];
+  const lastIndex = self.responses.findIndex(response => response.owner.name === player.name);
+  if (lastIndex >= 0) {
+    self.responses[lastIndex].message = response;
+  } else {
+    self.responses = [...self.responses, { owner: player, message: response }];
+  }
+  
 }
 
 export interface Response {

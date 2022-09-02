@@ -1,4 +1,3 @@
-import { Player } from "./player";
-import { Room } from "./room";
-
-export { Room, Player };
+export *  from "./player";
+export *  from "./room";
+export * from "./round-info";

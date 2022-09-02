@@ -14,6 +14,7 @@ const message = ref("");
 let roomComms: Client;
 let room: Room | void;
 let player: Player | void;
+let connectedToRoom = false;
 
 let client: Client;
 const messages: Ref<string[]> = ref([]);
@@ -26,7 +27,7 @@ function createRoom(roomName: string) {
   if (roomComms) {
     roomComms.destroy();
   }
-  roomComms = new Client(roomStore.ownRoom);
+  roomComms = new Client(roomStore.roomName);
   roomComms.addListener((message) => {
     switch (message.messageType) {
       case MessageTypes.SEND_SECRET_WORD:
@@ -40,7 +41,7 @@ function connectToRoom() {
     client.destroy();
   }
   client = new Client(playerStore.name);
-  client.connect(roomStore.remoteRoom);
+  client.connect(roomStore.roomName).then(() => connectedToRoom = true);
   client.addListener((message) => {
     switch (message.messageType) {
       case MessageTypes.SEND_SECRET_WORD:
@@ -70,11 +71,10 @@ function sendMessage() {
     <input type="text" v-model="playerStore.name" />
     <br />
     <label>Own Room: </label>
-    <input type="text" v-model="roomStore.ownRoom" />
-    <button @click="createRoom(roomStore.ownRoom)">Create Room</button>
+    <input type="text" v-model="roomStore.roomName" />
+    <button @click="createRoom(roomStore.roomName)">Create Room</button>
     <br />
     <label>Remote Room: </label>
-    <input type="text" v-model="roomStore.remoteRoom" />
     <button @click="connectToRoom()">Connect to room</button>
     <br />
     <label>Message: </label>

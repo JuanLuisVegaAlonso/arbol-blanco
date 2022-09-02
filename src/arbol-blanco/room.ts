@@ -3,25 +3,31 @@ import { newRoundInfo, type RoundInfo } from "./round-info";
 
 export interface Room {
   name: string;
-  creator: Player;
+  currentGM: Player | void;
   players: Player[];
   roundsInfo: RoundInfo[];
 }
 
 export function newRoom(
   name: string,
-  creator: Player,
+  currentGM: Player | void = undefined,
   players: Player[] = [],
   roundsInfo: RoundInfo[] = []
 ): Room {
-  const room: Room = { name, creator, players, roundsInfo };
+  const room: Room = { name, currentGM, players, roundsInfo };
 
-  if (roundsInfo.length == 0) {
-    const firstRound = newRoundInfo(creator);
+  if (roundsInfo.length == 0 && currentGM) {
+    const firstRound = newRoundInfo(currentGM);
     roundsInfo.push(firstRound);
   }
 
   return room;
+}
+
+export function changeGM(self: Room, newGm: Player) {
+  self.currentGM = newGm;
+  const newRound = newRoundInfo(newGm);
+  self.roundsInfo.push(newRound);
 }
 
 export function getPlayers(self: Room) {
@@ -32,6 +38,6 @@ export function join(self: Room, player: Player) {
   self.players = [...self.players, player];
 }
 
-export function getCurrentRoundInfo(self: Room): RoundInfo {
-  return self.roundsInfo[self.roundsInfo.length - 1];
+export function getCurrentRoundInfo(self: Room): RoundInfo | void {
+  return self.roundsInfo.length != 0 ? self.roundsInfo[self.roundsInfo.length - 1] : undefined;
 }
