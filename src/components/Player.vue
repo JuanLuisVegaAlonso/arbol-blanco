@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { newPlayer } from '@/arbol-blanco/player';
-import { getCurrentRoundInfo, newRoom, type Room } from '@/arbol-blanco/room';
+import { getCurrentRoundInfo, isGM, newRoom, type Room } from '@/arbol-blanco/room';
 import { addResponse, changeGM } from '@/arbol-blanco';
 import { MessageTypes, Client } from '@/comms';
 import type { SendSecretWordMessage } from '@/comms/messages';
@@ -14,36 +14,31 @@ const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
 let message = ref();
 
-
+if (playerStore.player) {
+    createPlayer();
+}
 
 function createPlayer() {
     playerStore.player = newPlayer(playerStore.name);
-    if (commsStore.playerComms) {
-        commsStore.playerComms.destroy();
-    }
 
-    commsStore.playerComms = new Client(playerStore.player.name);
-
-    commsStore.playerComms.addListener((message) => {
-        switch (message.messageType) {
-            case MessageTypes.SEND_SECRET_WORD:
-                if (!roomStore.room) return;
-                const currentRoundInfo = getCurrentRoundInfo(roomStore.room)
-                if (!currentRoundInfo) return;
-                const secretWordSent = message.message as SendSecretWordMessage;
-                addResponse(currentRoundInfo, secretWordSent.from, secretWordSent.secretWord);
-        }
-    });
 }
 
 
 function sendMessage() {
-    if (!commsStore.playerComms) return;
-    commsStore.playerComms.sendMessage<SendSecretWordMessage>({
-        messageType: MessageTypes.SEND_SECRET_WORD, message: {
-            from: playerStore.player, secretWord: message.value
-        }
-    })
+    if (!commsStore.client) return;
+    if (isGM(roomStore.room, playerStore.player)) {
+        if (!roomStore.room) return;
+        const currentRoundInfo = getCurrentRoundInfo(roomStore.room)
+        if (!currentRoundInfo) return;
+        addResponse(currentRoundInfo, playerStore.player, message.value);
+    } else {
+        commsStore.client.sendMessage<SendSecretWordMessage>({
+            messageType: MessageTypes.SEND_SECRET_WORD, message: {
+                from: playerStore.player, secretWord: message.value
+            }
+        })
+    }
+
 }
 </script>
 
@@ -51,8 +46,13 @@ function sendMessage() {
 <template>
     <h2>Player</h2>
     <input v-model="playerStore.name" />
+    <span v-if="playerStore.player">
+        ✅
+    </span>
+    <span v-else>
+        ❌
+    </span>
     <br />
-    Roomies {{ playerStore.name }}
     <button @click="createPlayer">Create player</button>
     <br />
     <input v-model="message" />

@@ -29,7 +29,7 @@ export function addResponse(self: RoundInfo, player: Player, response: string) {
   if (lastIndex >= 0) {
     self.responses[lastIndex].message = response;
   } else {
-    self.responses = [...self.responses, { owner: player, message: response }];
+    self.responses.push( { owner: player, message: response });
   }
   
 }

@@ -18,6 +18,7 @@ export class Client {
   }
 
   sendMessage<T>(message: Message<T>) {
+    console.log({message})
     this.connections.forEach((connection) => connection.send(message));
   }
   addListener(listener: (message: Message<unknown>) => void) {
@@ -29,33 +30,39 @@ export class Client {
   }
 
   connect(other: string): Promise<void> {
-    const connect = new Promise<void>((resolve, error) => { this.resolveConnection = resolve; this.errorConnection = error });
+    const connection = new Promise<void>((resolve, error) => { this.resolveConnection = resolve; this.errorConnection = error });
     if (this.ready) {
-      this.unsafeConnect(other);
+      setTimeout(() => this.unsafeConnect(other), 100);
     } else {
       this.pendingConnections.push(other);
     }
-    return connect;
+    return connection;
   }
 
   private unsafeConnect(other: string) {
+    console.log("unsafe")
     const connection = this.peer.connect(this.generatePeerId(other));
+    connection.on("open",  ()=> this.resolveConnection!());
     this.connections.push(connection);
     connection.on("data", (data) => {
       const message = data as unknown as Message<unknown>;
+      console.log(message);
       this.messageListeners.forEach((listener) => listener(message));
     });
-    this.resolveConnection!();
+    
   }
   private onPeerOpen() {
     this.ready = true;
+    console.log("OPEN")
     if (this.pendingConnections.length !== 0) {
+      console.log("pending message")
       this.pendingConnections.forEach(this.unsafeConnect.bind(this));
     }
     this.peer.on("connection", this.onPeerConection.bind(this));
   }
 
   private onPeerConection(dataConnection: DataConnection) {
+    console.log("Connection");
     this.connections.push(dataConnection);
     dataConnection.on("data", (data) => {
       const message = data as unknown as Message<unknown>;
