@@ -1,61 +1,53 @@
 <script setup lang="ts">
-import { newPlayer } from '@/arbol-blanco/player';
-import { getCurrentRoundInfo, isGM, newRoom, type Room } from '@/arbol-blanco/room';
-import { addResponse, changeGM } from '@/arbol-blanco';
-import { MessageTypes, Client } from '@/comms';
-import type { SendSecretWordMessage } from '@/comms/messages';
-import { usePlayerStore } from '@/stores/player';
-import { useRoomStore } from '@/stores/room';
-import { useCommsStore } from '@/stores/comms';
-import { ref } from 'vue';
+defineProps({
+    name: {
+        type: String,
+        required: true
+    },
+    isGM: Boolean,
+    isArbolBlanco: Boolean
+});
 
-const roomStore = useRoomStore();
-const playerStore = usePlayerStore();
-const commsStore = useCommsStore();
-let message = ref();
-
-if (playerStore.player) {
-    createPlayer();
-}
-
-function createPlayer() {
-    playerStore.player = newPlayer(playerStore.name);
-
-}
-
-
-function sendMessage() {
-    if (!commsStore.client) return;
-    if (isGM(roomStore.room, playerStore.player)) {
-        if (!roomStore.room) return;
-        const currentRoundInfo = getCurrentRoundInfo(roomStore.room)
-        if (!currentRoundInfo) return;
-        addResponse(currentRoundInfo, playerStore.player, message.value);
-    } else {
-        commsStore.client.sendMessage<SendSecretWordMessage>({
-            messageType: MessageTypes.SEND_SECRET_WORD, message: {
-                from: playerStore.player, secretWord: message.value
-            }
-        })
-    }
-
-}
 </script>
 
-
 <template>
-    <h2>Player</h2>
-    <input v-model="playerStore.name" />
-    <span v-if="playerStore.player">
-        ✅
-    </span>
-    <span v-else>
-        ❌
-    </span>
-    <br />
-    <button @click="createPlayer">Create player</button>
-    <br />
-    <input v-model="message" />
-    <button @click="sendMessage">Send message</button>
+    <div class="slab">
+        <span>{{name}}</span>
+        <div v-if="isGM" class="modifier">GM</div>
+        <div v-if="isArbolBlanco" class="modifier">AB</div>
+        <div v-if="!isGM && !isArbolBlanco" class="modifier"></div>
+    </div>
 </template>
-  
+
+<style scoped>
+.slab {
+    border: black solid;
+    border-width: 2px 4px;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.slab span {
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.slab:first-child {
+    border-width: 4px 4px 2px 4px;
+}
+
+.slab:last-child {
+    border-width: 2px 4px 4px 4px;
+}
+
+.slab * {
+    padding: 3px;
+}
+
+.modifier {
+    min-width: 30px;
+}
+</style>

@@ -5,6 +5,7 @@ export const useCommsStore = defineStore({
   id: "comms",
   state: () => ({
     client: undefined as unknown as Client,
+    isServer: false
   }),
   getters: {
     

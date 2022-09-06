@@ -32,6 +32,22 @@ export function changeGM(self: Room, newGm: Player) {
   self.roundsInfo.push(newRound);
 }
 
+export function newRound(self: Room) {
+  self.roundsInfo.push(newRoundInfo(self.currentGM!));
+}
+export function changeArbolBlanco(self: Room, newArbolBlanco: Player) {
+  const currentRoundInfo = getCurrentRoundInfo(self);
+  if (!currentRoundInfo) return;
+  if(isGM(self, newArbolBlanco)) return;
+  currentRoundInfo.arbolBlanco = newArbolBlanco;
+}
+
+export function changeSecretWord(self: Room, newSecretWord: string) {
+  const currentRoundInfo = getCurrentRoundInfo(self);
+  if (!currentRoundInfo) return;
+  currentRoundInfo.secretWord = newSecretWord;
+}
+
 export function getPlayers(self: Room) {
   return self.players;
 }
@@ -47,4 +63,10 @@ export function getCurrentRoundInfo(self: Room): RoundInfo | void {
 
 export function isGM(self: Room, possibleGM: Player) {
   return self && self.currentGM && self.currentGM.name === possibleGM.name ? true : false
+}
+
+export function isArbolBlanco(self: Room, player: Player): boolean {
+  const currentRoundInfo = getCurrentRoundInfo(self);
+  if (!currentRoundInfo) return false;
+  return !!currentRoundInfo.arbolBlanco && currentRoundInfo.arbolBlanco.name === player.name;
 }
