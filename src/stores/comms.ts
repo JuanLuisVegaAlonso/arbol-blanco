@@ -4,7 +4,7 @@ import type { Client } from "@/comms";
 export const useCommsStore = defineStore({
   id: "comms",
   state: () => ({
-    client: undefined as unknown as Client,
+    client: undefined as unknown as Client | void,
     isServer: false
   }),
   getters: {

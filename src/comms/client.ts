@@ -10,16 +10,19 @@ export class Client {
   private ready = false;
   private pendingConnections: string[] = [];
   private resolveConnection: ((value: void | PromiseLike<void>) => void) | undefined;
-  private errorConnection: ((value: void | PromiseLike<void>) => void) | undefined;
+  private errorConnection: ((value: any) => void) | undefined;
   constructor(public name: string) {
     this.peer = new Peer(this.generatePeerId(name));
     this.peer.on("open", this.onPeerOpen.bind(this));
-    this.peer.on("error", () => this.errorConnection ? this.errorConnection() : undefined);
+    this.peer.on("error", (error) => this.errorConnection ? this.errorConnection(error) : undefined);
   }
 
   sendMessage<T>(message: Message<T>) {
-    console.log({message})
-    this.connections.forEach((connection) => connection.send(message));
+    debugger;
+    this.connections.forEach((connection) => {
+      console.log({message, peer: connection.peer})
+      connection.send(message)
+    });
   }
   addListener(listener: (message: Message<unknown>) => void) {
     this.messageListeners.push(listener);
@@ -32,7 +35,7 @@ export class Client {
   connect(other: string): Promise<void> {
     const connection = new Promise<void>((resolve, error) => { this.resolveConnection = resolve; this.errorConnection = error });
     if (this.ready) {
-      setTimeout(() => this.unsafeConnect(other), 100);
+      this.unsafeConnect(other);
     } else {
       this.pendingConnections.push(other);
     }
@@ -49,6 +52,7 @@ export class Client {
       console.log(message);
       this.messageListeners.forEach((listener) => listener(message));
     });
+    connection.on("error", (error) => this.errorConnection!(error as any));
     
   }
   private onPeerOpen() {

@@ -15,7 +15,8 @@ const commsStore = useCommsStore();
 
 
 roomStore.$subscribe((mutation, state) => {
-    if (commsStore.isServer) {
+    if (commsStore.isServer && commsStore.client) {
+      console.log("updating via pinia")
         commsStore.client.sendMessage({ messageType: MessageTypes.UPDATE_STATE, message: state.room });
     }
 })
@@ -44,11 +45,12 @@ function changeSecretWord(secretWord: string) {
 }
 
 function updateState() {
-  commsStore.client.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
+  commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
 }
 
 function newRoundHere(){
   newRound(roomStore.room);
+  updateState();
 }
 </script>
 
@@ -63,6 +65,8 @@ function newRoundHere(){
       @new-round="newRoundHere"
       />
     <PlayerWaiting v-if="!currentGM() &&playerStore.player && roomStore.room"/>
-    <button @click="clearRoom">Clear Room</button>
   </div>
 </template>
+
+<style scoped>
+</style>

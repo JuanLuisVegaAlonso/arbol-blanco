@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { getCurrentRoundInfo, isArbolBlanco as isArbolBlancoRoom, isGM as isGMRoom, type Player as PlayerType } from '@/arbol-blanco';
 import { useRoomStore } from '@/stores/room';
-import Player from './Player.vue';
+import PlayerSlab from './PlayerSlab.vue';
 import Hammer from 'hammerjs';
 import type { RendererElement, RendererNode, VNode } from 'vue';
 
@@ -32,7 +32,7 @@ function log(event: VNode<RendererNode, RendererElement, {
 </script>
 <template>
     <div id="players">
-        <Player v-for="player in roomStore.room.players" :name="player.name" :is-g-m="isGM(roomStore.room, player)" :is-arbol-blanco="isArbolBlanco(roomStore.room, player)"
+        <PlayerSlab v-for="player in roomStore.room.players" :name="player.name" :is-g-m="isGM(roomStore.room, player)" :is-arbol-blanco="isArbolBlanco(roomStore.room, player)"
             v-on:vnode-mounted="log($event, player)" />
     </div>
     <div id="secret-word">

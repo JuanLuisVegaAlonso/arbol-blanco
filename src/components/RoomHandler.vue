@@ -27,7 +27,7 @@ function createRoom() {
                 if (!roomStore.room) return;
                 const player = message.message as Player;
                 join(roomStore.room, player);
-                console.log(roomStore.room);
+                console.log("aaaa",roomStore.room);
                 break;
             case MessageTypes.UPDATE_STATE:
                 const room = message.message as Room;
@@ -53,7 +53,7 @@ function joinRoom() {
     commsStore.client.connect(roomStore.roomName).then(() => {
         connectedToRoom.value = true
         console.log("test");
-        commsStore.client.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
+        commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
     });
 
 }
