@@ -18,7 +18,6 @@ export class Client {
   }
 
   sendMessage<T>(message: Message<T>) {
-    debugger;
     this.connections.forEach((connection) => {
       console.log({message, peer: connection.peer})
       connection.send(message)

@@ -39,6 +39,7 @@ function createRoom() {
 
 function joinRoom() {
     if (commsStore.client) {
+        console.log("destroying client")
         commsStore.client.destroy();
     }
     commsStore.client = new Client(playerStore.player.name);
@@ -54,7 +55,8 @@ function joinRoom() {
         connectedToRoom.value = true
         console.log("test");
         commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
-    });
+    },
+    error => console.log(error));
 
 }
 function getRoundInfo() {

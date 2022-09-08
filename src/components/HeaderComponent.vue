@@ -11,7 +11,7 @@ const commsStore = useCommsStore();
 function exitRoom() {
 
     if (commsStore.client) {
-        commsStore.client.destroy;
+        commsStore.client.destroy();
         commsStore.$patch({client: undefined})
     }
     roomStore.$patch({room: undefined})
