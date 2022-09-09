@@ -24,11 +24,13 @@ function removeUser() {
 <template>
     <header>
         <template v-if="playerStore.player">
-            <span>User: {{ playerStore.player?.name }}</span>
+            <span>{{ playerStore.player?.name }}</span>
             <span v-if="playerStore.player" @click="removeUser">
-                    ❌
+                    <img src="removePeople.webp" alt="remove">
             </span>
-            <button v-if="roomStore.room" @click="exitRoom">Exit room</button>
+            <span v-if="roomStore.room">
+                <img src="puerta.webp" alt="puerta" @click="exitRoom">
+            </span>
         </template>
         <template v-else>
             <span>Arbol blanco</span>
@@ -37,7 +39,11 @@ function removeUser() {
 </template>
 
 <style scoped>
-div:first-child {
-    font-size: 10px;
+span {
+    text-align: center;
+}
+header {
+    display: flex;
+    justify-content: space-around;
 }
 </style>

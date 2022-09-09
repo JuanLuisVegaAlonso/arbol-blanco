@@ -7,6 +7,7 @@ import { ref } from 'vue';
 import type { Player, Room } from '@/arbol-blanco';
 import { getCurrentRoundInfo, join, newRoom, findPlayer, remove } from '@/arbol-blanco';
 import type { DataConnection } from 'peerjs';
+import InputComponent from './InputComponent.vue';
 
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
@@ -79,15 +80,25 @@ function getRoundInfo() {
 
 <template>
     <h2>Room</h2>
-    <input v-model="roomStore.roomName" />
-    <span v-if="roomStore.room">
-        ✅
-    </span>
-    <span v-else>
-        ❌
-    </span>
-    <br />
-    <button @click="createRoom">Create room </button>
-    <button @click="joinRoom">Join room </button>
+    <div id="room-info">
+        <input-component v-model="roomStore.roomName" />
+        <span>
+            <img @click="createRoom" src="createRoom.webp" alt="CreateRoom">
+        </span>
+        <span>
+            <img @click="joinRoom" src="joinRoom.webp" alt="JoinRoom">
+        </span>
+    </div>
 </template>
-  
+  <style scoped>
+    * {
+        text-align: center;
+    }
+    #room-info {
+        display: flex;
+        
+    }
+    #room-info > * {
+        margin: 3px;
+    }
+  </style>

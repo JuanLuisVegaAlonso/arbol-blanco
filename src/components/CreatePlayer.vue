@@ -2,6 +2,7 @@
 import { newPlayer } from '@/arbol-blanco/player';
 import { usePlayerStore } from '@/stores/player';
 import { ref } from 'vue';
+import InputComponent from './InputComponent.vue';
 
 const playerStore = usePlayerStore();
 let message = ref();
@@ -14,16 +15,27 @@ function createPlayer() {
 
 
 <template>
-    <h2>Player</h2>
-    <input v-model="playerStore.name" />
-    <span v-if="playerStore.player">
-        ✅
-    </span>
-    <span v-else>
-        ❌
-    </span>
-    <br />
-    <button @click="createPlayer">Create player</button>
-    <br />
+    <div id="player">
+        <h2>Player</h2>
+        <div>
+            <input-component v-model="playerStore.name" />
+            <span>
+                <img src="addPeople.webp" alt="AddPeople" @click="createPlayer">
+            </span>
+        </div>
+    </div>
 </template>
+
+<style scoped>
+#player {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+#player > div {
+    display: flex;
+    flex-wrap: no-wrap;
+}
+</style>
   

@@ -12,10 +12,11 @@ defineProps({
 
 <template>
     <div class="slab">
+        <div v-if="isArbolBlanco" class="modifier"><img src="arbolBlanco.webp" alt="ArbolBlanco"></div>
+        <div v-if="!isArbolBlanco" class="modifier"></div>
         <span>{{name}}</span>
-        <div v-if="isGM" class="modifier">GM</div>
-        <div v-if="isArbolBlanco" class="modifier">AB</div>
-        <div v-if="!isGM && !isArbolBlanco" class="modifier"></div>
+        <div v-if="isGM" class="modifier"><img src="GM.webp" alt="GM"></div>
+        <div v-if="!isGM" class="modifier"></div>
     </div>
 </template>
 
@@ -43,7 +44,7 @@ defineProps({
     border-width: 2px 4px 4px 4px;
 }
 
-.slab * {
+.slab > * {
     padding: 3px;
 }
 

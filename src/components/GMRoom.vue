@@ -5,9 +5,10 @@ import { useRoomStore } from '@/stores/room';
 import PlayerSlab from './PlayerSlab.vue';
 import Hammer from 'hammerjs';
 import type { RendererElement, RendererNode, VNode } from 'vue';
+import InputComponent from './InputComponent.vue';
 
 const roomStore = useRoomStore();
-let secretWord: string | void = undefined;
+let secretWord: string | undefined = undefined;
 const isGM = isGMRoom;
 const isArbolBlanco = isArbolBlancoRoom
 
@@ -36,14 +37,24 @@ function log(event: VNode<RendererNode, RendererElement, {
             v-on:vnode-mounted="log($event, player)" />
     </div>
     <div id="secret-word">
-        <input v-model="secretWord"/>
-        <button @click="$emit('changeSecretWord', secretWord)">Change secret word</button>
-        <button @click="$emit('newRound')">New Round</button>
+        <input-component v-model="secretWord"/>
+        <span>
+            <img  @click="$emit('changeSecretWord', secretWord)" src="enigma.webp" alt="ch.secret word">
+        </span>
+        <span>
+            <img @click="$emit('newRound')" src="end.webp" alt="new round">
+        </span>
     </div>
 </template>
 <style scoped>
 #players {
     display: flex;
     flex-wrap: wrap;
+}
+#secret-word {
+    display: flex;
+}
+#secret-word > * {
+    margin: 3px;
 }
 </style>

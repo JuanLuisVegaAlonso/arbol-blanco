@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import CreatePlayer from "../components/CreatePlayer.vue";
+import RoomHandler from "../components/RoomHandler.vue";
+import GMRoom from "../components/GMRoom.vue";
+import PlayerWaiting from "../components/PlayerWaiting.vue";
 import { usePlayerStore } from "@/stores/player";
 import { useRoomStore } from "@/stores/room";
-import RoomHandler from "../components/RoomHandler.vue";
 import { isGM, type Player, changeArbolBlanco, changeGM, changeSecretWord as changeSecretWordRoom, newRound } from "@/arbol-blanco";
-import GMRoom from "../components/GMRoom.vue";
 import { useCommsStore } from "@/stores/comms";
 import { MessageTypes } from "@/comms";
-import PlayerWaiting from "../components/PlayerWaiting.vue";
+
 
 const playerStore = usePlayerStore();
 const roomStore = useRoomStore();
