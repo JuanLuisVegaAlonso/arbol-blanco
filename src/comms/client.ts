@@ -1,6 +1,6 @@
 import { Peer } from "peerjs";
 import type { DataConnection } from "peerjs";
-import type { Message } from "./messages";
+import { MessageTypes, type Message } from "./messages";
 
 export class Client {
   private static uniqueBullshit = "dasdasdasdasdasd-gdfsgdfsgdsf-";
@@ -41,6 +41,9 @@ export class Client {
     return connection;
   }
 
+  getPeerName(peerId: string) {
+    return peerId.replace(Client.uniqueBullshit, "");
+  }
   private unsafeConnect(other: string) {
     console.log("unsafe")
     const connection = this.peer.connect(this.generatePeerId(other));
@@ -51,6 +54,7 @@ export class Client {
       console.log(message);
       this.messageListeners.forEach((listener) => listener(message));
     });
+    
     connection.on("error", (error) => this.errorConnection!(error as any));
     
   }
@@ -71,9 +75,15 @@ export class Client {
       const message = data as unknown as Message<unknown>;
       this.messageListeners.forEach((listener) => listener(message));
     });
+    dataConnection.on("close", () => {
+      this.messageListeners.forEach((listener) => listener({messageType: MessageTypes.LEAVE_ROOM, message: dataConnection}));
+      console.log("someoneClosed")
+    });
   }
 
   private generatePeerId(name: string) {
     return Client.uniqueBullshit + name;
   }
+
+  
 }

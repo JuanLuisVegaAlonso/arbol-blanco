@@ -17,11 +17,17 @@ function exitRoom() {
     roomStore.$patch({room: undefined})
 }
 
+function removeUser() {
+    playerStore.$patch({player: undefined});
+}
 </script>
 <template>
     <header>
         <template v-if="playerStore.player">
             <span>User: {{ playerStore.player?.name }}</span>
+            <span v-if="playerStore.player" @click="removeUser">
+                    ❌
+            </span>
             <button v-if="roomStore.room" @click="exitRoom">Exit room</button>
         </template>
         <template v-else>

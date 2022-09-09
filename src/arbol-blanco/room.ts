@@ -1,4 +1,4 @@
-import type { Player } from "./player";
+import { newPlayer, type Player } from "./player";
 import { newRoundInfo, type RoundInfo } from "./round-info";
 
 export interface Room {
@@ -38,7 +38,7 @@ export function newRound(self: Room) {
 export function changeArbolBlanco(self: Room, newArbolBlanco: Player) {
   const currentRoundInfo = getCurrentRoundInfo(self);
   if (!currentRoundInfo) return;
-  if(isGM(self, newArbolBlanco)) return;
+  if (isGM(self, newArbolBlanco)) return;
   currentRoundInfo.arbolBlanco = newArbolBlanco;
 }
 
@@ -54,6 +54,18 @@ export function getPlayers(self: Room) {
 
 export function join(self: Room, player: Player) {
   self.players.push(player);
+}
+
+export function findPlayer(self: Room, playerStr: string): Player | void {
+  const player = newPlayer(playerStr);
+  const indexOfPlayer = self.players.indexOf(player);
+  return indexOfPlayer < 0 ? undefined : self.players[indexOfPlayer];
+}
+
+export function remove(self: Room, player: Player) {
+  const indexOfPlayer = self.players.indexOf(player);
+  if (indexOfPlayer < 0) return;
+  self.players.splice(indexOfPlayer, 1);
 }
 
 export function getCurrentRoundInfo(self: Room): RoundInfo | void {

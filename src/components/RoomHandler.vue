@@ -5,7 +5,8 @@ import { useRoomStore } from '@/stores/room';
 import { useCommsStore } from '@/stores/comms';
 import { ref } from 'vue';
 import type { Player, Room } from '@/arbol-blanco';
-import { getCurrentRoundInfo, join, newRoom } from '@/arbol-blanco';
+import { getCurrentRoundInfo, join, newRoom, findPlayer, remove } from '@/arbol-blanco';
+import type { DataConnection } from 'peerjs';
 
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
@@ -23,16 +24,27 @@ function createRoom() {
     commsStore.client.addListener((message) => {
         console.log(message);
         switch (message.messageType) {
-            case MessageTypes.JOIN_ROOM:
+            case MessageTypes.JOIN_ROOM: {
                 if (!roomStore.room) return;
                 const player = message.message as Player;
                 join(roomStore.room, player);
                 console.log("aaaa",roomStore.room);
                 break;
-            case MessageTypes.UPDATE_STATE:
+            }
+            case MessageTypes.UPDATE_STATE: {
                 const room = message.message as Room;
                 roomStore.$patch({ room });
                 break;
+            }
+            case MessageTypes.LEAVE_ROOM: {
+                const connection = message.message as DataConnection;
+                const playerName = commsStore.client!.getPeerName(connection.peer);
+                console.log("Player left" , playerName)
+                const player = findPlayer(roomStore.room, playerName);
+                if (player) {
+                    remove(roomStore.room, player);
+                }
+            }
         }
     });
 }
