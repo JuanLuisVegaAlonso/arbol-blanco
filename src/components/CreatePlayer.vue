@@ -2,6 +2,7 @@
 import { newPlayer } from '@/arbol-blanco/player';
 import { usePlayerStore } from '@/stores/player';
 import { ref } from 'vue';
+import ButtonComponent from './ButtonComponent.vue';
 import InputComponent from './InputComponent.vue';
 
 const playerStore = usePlayerStore();
@@ -17,11 +18,9 @@ function createPlayer() {
 <template>
     <div id="player">
         <h2>Player</h2>
-        <div>
-            <input-component v-model="playerStore.name" />
-            <span>
-                <img src="addPeople.webp" alt="AddPeople" @click="createPlayer">
-            </span>
+        <input-component v-model="playerStore.name" />
+        <div class="buttons">
+            <button-component  @click="createPlayer" label="Create player" img="addPeople"/>
         </div>
     </div>
 </template>
@@ -33,9 +32,13 @@ function createPlayer() {
     flex-direction: column;
 }
 
-#player > div {
+
+.buttons {
     display: flex;
-    flex-wrap: no-wrap;
+    justify-content: space-around;
+}
+.buttons > *{ 
+    margin: 3px;
 }
 </style>
   

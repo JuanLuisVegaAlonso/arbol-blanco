@@ -6,6 +6,7 @@ import PlayerSlab from './PlayerSlab.vue';
 import Hammer from 'hammerjs';
 import type { RendererElement, RendererNode, VNode } from 'vue';
 import InputComponent from './InputComponent.vue';
+import ButtonComponent from './ButtonComponent.vue';
 
 const roomStore = useRoomStore();
 let secretWord: string | undefined = undefined;
@@ -32,18 +33,18 @@ function log(event: VNode<RendererNode, RendererElement, {
 
 </script>
 <template>
+    <h3>Room: {{roomStore.room.name}}</h3>
     <div id="players">
         <PlayerSlab v-for="player in roomStore.room.players" :name="player.name" :is-g-m="isGM(roomStore.room, player)" :is-arbol-blanco="isArbolBlanco(roomStore.room, player)"
             v-on:vnode-mounted="log($event, player)" />
     </div>
     <div id="secret-word">
+        <h3>Secret word</h3>
         <input-component v-model="secretWord"/>
-        <span>
-            <img  @click="$emit('changeSecretWord', secretWord)" src="enigma.webp" alt="ch.secret word">
-        </span>
-        <span>
-            <img @click="$emit('newRound')" src="end.webp" alt="new round">
-        </span>
+        <div class="buttons">
+            <button-component  @click="$emit('changeSecretWord', secretWord)" label="change secret word" img="enigma"/>
+            <button-component  @click="$emit('newRound')" label="new round" img="end"/>
+        </div>
     </div>
 </template>
 <style scoped>
@@ -53,8 +54,18 @@ function log(event: VNode<RendererNode, RendererElement, {
 }
 #secret-word {
     display: flex;
+    flex-wrap: wrap;
 }
 #secret-word > * {
     margin: 3px;
+}
+.buttons {
+    display: flex;
+}
+.buttons > * {
+    margin: 3px;
+}
+h3 {
+    text-align: center;
 }
 </style>

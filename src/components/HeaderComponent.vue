@@ -26,10 +26,10 @@ function removeUser() {
         <template v-if="playerStore.player">
             <span>{{ playerStore.player?.name }}</span>
             <span v-if="playerStore.player" @click="removeUser">
-                    <img src="removePeople.webp" alt="remove">
+                    <img src="buttonImages/removePeople.webp" alt="remove">
             </span>
             <span v-if="roomStore.room">
-                <img src="puerta.webp" alt="puerta" @click="exitRoom">
+                <img src="buttonImages/puerta.webp" alt="puerta" @click="exitRoom">
             </span>
         </template>
         <template v-else>
