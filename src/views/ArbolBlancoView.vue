@@ -8,12 +8,13 @@ import { useRoomStore } from "@/stores/room";
 import { isGM, type Player, changeArbolBlanco, changeGM, changeSecretWord as changeSecretWordRoom, newRound } from "@/arbol-blanco";
 import { useCommsStore } from "@/stores/comms";
 import { MessageTypes } from "@/comms";
+import { ref } from "vue";
 
 
 const playerStore = usePlayerStore();
 const roomStore = useRoomStore();
 const commsStore = useCommsStore();
-
+let secretWord = ref('');
 
 roomStore.$subscribe((mutation, state) => {
     if (commsStore.isServer && commsStore.client) {
@@ -36,12 +37,10 @@ function makeGM(player: Player) {
   changeGM(roomStore.room, player);
   updateState();
 }
-function clearRoom() {
-  roomStore.$patch({room: undefined})
-}
 
-function changeSecretWord(secretWord: string) {
-  changeSecretWordRoom(roomStore.room, secretWord);
+function changeSecretWord(secretWordInternal: string) {
+  changeSecretWordRoom(roomStore.room, secretWordInternal);
+  secretWord.value = '';
   updateState();
 }
 
@@ -51,6 +50,7 @@ function updateState() {
 
 function newRoundHere(){
   newRound(roomStore.room);
+  secretWord.value = '';
   updateState();
 }
 </script>
@@ -64,6 +64,7 @@ function newRoundHere(){
       @swipe-right="makeGM" 
       @change-secret-word="changeSecretWord"
       @new-round="newRoundHere"
+      v-model:secret-word="secretWord"
       />
     <PlayerWaiting v-if="!currentGM() &&playerStore.player && roomStore.room"/>
   </div>

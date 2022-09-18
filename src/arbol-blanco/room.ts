@@ -82,3 +82,9 @@ export function isArbolBlanco(self: Room, player: Player): boolean {
   if (!currentRoundInfo) return false;
   return !!currentRoundInfo.arbolBlanco && currentRoundInfo.arbolBlanco.name === player.name;
 }
+
+export function isRoundLive(self: Room): boolean {
+  const currentRoundInfo = getCurrentRoundInfo(self);
+  if (!currentRoundInfo) return false;
+  return !!currentRoundInfo.secretWord;
+}

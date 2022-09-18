@@ -1,6 +1,10 @@
 <script setup lang="ts">
-const props = defineProps({
-    modelValue: String
+defineProps({
+    modelValue: String,
+    disabled: {
+        type: Boolean,
+        default: false
+    }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -10,7 +14,7 @@ const updateValue = (event: any) => {
 }
 </script>
 <template>
-    <input :value="modelValue" @input="updateValue">
+    <input :value="modelValue" @input="updateValue" :disabled="disabled">
 </template>
 <style scoped>
     input {
@@ -19,5 +23,10 @@ const updateValue = (event: any) => {
         padding: 3px;
         text-align: center;
         min-width: 0;
+    }
+    input:disabled {
+        background-color: lightgray;
+        border: 3px solid lightslategrey;
+        cursor: not-allowed;
     }
 </style>

@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { getCurrentRoundInfo, isArbolBlanco as isArbolBlancoRoom, isGM as isGMRoom, type Player as PlayerType } from '@/arbol-blanco';
+import { isArbolBlanco , isGM, isRoundLive, type Player as PlayerType } from '@/arbol-blanco';
 import { useRoomStore } from '@/stores/room';
 import PlayerSlab from './PlayerSlab.vue';
 import Hammer from 'hammerjs';
@@ -8,10 +8,13 @@ import type { RendererElement, RendererNode, VNode } from 'vue';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';
 
+
+defineProps({
+    secretWord: String
+})
+
 const roomStore = useRoomStore();
-let secretWord: string | undefined = undefined;
-const isGM = isGMRoom;
-const isArbolBlanco = isArbolBlancoRoom
+
 
 const emits = defineEmits(["swipeRight", "swipeLeft", "changeSecretWord", "newRound"]);
 function log(event: VNode<RendererNode, RendererElement, {
@@ -40,10 +43,10 @@ function log(event: VNode<RendererNode, RendererElement, {
     </div>
     <div id="secret-word">
         <h3>Secret word</h3>
-        <input-component v-model="secretWord"/>
+        <input-component :value="secretWord" @input="$emit('update:secretWord', ($event.target as HTMLInputElement).value)" :disabled="isRoundLive(roomStore.room)"/>
         <div class="buttons">
-            <button-component  @click="$emit('changeSecretWord', secretWord)" label="change secret word" img="enigma"/>
-            <button-component  @click="$emit('newRound')" label="new round" img="end"/>
+            <button-component  v-if="isRoundLive(roomStore.room)" @click="$emit('newRound')" label="new round" img="end"/>
+            <button-component  v-else @click="$emit('changeSecretWord', secretWord)" label="change secret word" img="enigma"/>
         </div>
     </div>
 </template>
@@ -54,13 +57,14 @@ function log(event: VNode<RendererNode, RendererElement, {
 }
 #secret-word {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
 }
 #secret-word > * {
     margin: 3px;
 }
 .buttons {
     display: flex;
+    justify-content: space-around;
 }
 .buttons > * {
     margin: 3px;
