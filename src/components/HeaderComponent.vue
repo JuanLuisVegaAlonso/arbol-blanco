@@ -6,6 +6,7 @@ import { useRoomStore } from '@/stores/room';
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
+const imageSize = 32;
 
 
 function exitRoom() {
@@ -26,10 +27,10 @@ function removeUser() {
         <template v-if="playerStore.player">
             <span>{{ playerStore.player?.name }}</span>
             <span v-if="playerStore.player" @click="removeUser">
-                    <img src="buttonImages/removePeople.webp" alt="remove">
+                    <img src="buttonImages/removePeople.png" alt="remove" :width="imageSize" :height="imageSize">
             </span>
             <span v-if="roomStore.room">
-                <img src="buttonImages/puerta.webp" alt="puerta" @click="exitRoom">
+                <img src="buttonImages/puerta.png" alt="puerta" @click="exitRoom" :width="imageSize" :height="imageSize">
             </span>
         </template>
         <template v-else>
@@ -45,5 +46,9 @@ span {
 header {
     display: flex;
     justify-content: space-around;
+}
+
+img {
+    image-rendering: pixelated;
 }
 </style>

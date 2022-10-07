@@ -1,12 +1,11 @@
 
 <script setup lang="ts">
-import { isArbolBlanco , isGM, isRoundLive, type Player as PlayerType } from '@/arbol-blanco';
+import { isArbolBlanco , isGM, isRoundLive, type Player, type Player as PlayerType } from '@/arbol-blanco';
 import { useRoomStore } from '@/stores/room';
 import PlayerSlab from './PlayerSlab.vue';
-import Hammer from 'hammerjs';
-import type { RendererElement, RendererNode, VNode } from 'vue';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';
+import { reactive } from 'vue';
 
 
 defineProps({
@@ -17,29 +16,45 @@ const roomStore = useRoomStore();
 
 
 const emits = defineEmits(["swipeRight", "swipeLeft", "changeSecretWord", "newRound"]);
-function log(event: VNode<RendererNode, RendererElement, {
-    [key: string]: any;
-}>, player: PlayerType) {
-    if (event.el === null) return;
-    const hammer = new Hammer(event.el as HTMLElement);
-    hammer.on("swipeleft swiperight", function (ev: any) {
-        console.log(ev.type + " gesture detected.");
-        if (ev.type === "swiperight") {
-            emits("swipeRight", player);
-        } 
-        if (ev.type === "swipeleft") {
-            emits("swipeLeft", player);
+
+const deltaXs = reactive([] as number[]);
+
+roomStore.$subscribe((mutation, state) => {
+    if (roomStore.room.players.values.length > deltaXs.length) {
+        deltaXs.push(0);
+    }
+})
+
+const deltaXchange = (deltaX: number, index: number, player: Player) => {
+
+    
+    if (!isGM(roomStore.room, player)) {
+        for(let i = 0; i < deltaXs.length; i++) {
+            if (deltaX < 0 && (roomStore.currentGm && roomStore.currentGm.name === roomStore.players[i].name) ) {
+                deltaXs[i] = - 1 - deltaX;
+                console.log("hallo")
+            }
+            if (deltaX > 0 && (roomStore.currentArbolBlanco && roomStore.currentArbolBlanco.name === roomStore.players[i].name)) {
+                deltaXs[i] = 1 - deltaX;
+            } 
         }
-    });
+        deltaXs[index] = deltaX;    
+    }
+    
 }
-
-
 </script>
 <template>
     <h3>Room: {{roomStore.room.name}}</h3>
     <div id="players">
-        <PlayerSlab v-for="player in roomStore.room.players" :name="player.name" :is-g-m="isGM(roomStore.room, player)" :is-arbol-blanco="isArbolBlanco(roomStore.room, player)"
-            v-on:vnode-mounted="log($event, player)" />
+        <PlayerSlab 
+            @swipe-left="$emit('swipeLeft', player)" 
+            @swipe-right="$emit('swipeRight', player)"
+            @delta-x="deltaXchange($event, index, player)"
+            v-for="(player , index) in roomStore.room.players" :name="player.name" 
+            :is-g-m="isGM(roomStore.room, player)"
+            :is-arbol-blanco="isArbolBlanco(roomStore.room, player)"
+            :delta-x="deltaXs[index]"
+           />
     </div>
     <div id="secret-word">
         <h3>Secret word</h3>

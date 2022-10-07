@@ -9,7 +9,7 @@ const props = defineProps({
 <template>
     <button  @click="$emit('click')">
         <div>
-            <img :src="`buttonImages/${img}.webp`">
+            <img :src="`buttonImages/${img}.png`" width = "64" height = "64">
         </div>
         <span> {{label}}</span>
     </button>
@@ -29,8 +29,9 @@ const props = defineProps({
     button > * {
         margin: 3px;
     }
+
     img {
-        width: 16px;
-        height: 16px;
+        image-rendering: pixelated;
     }
+    
 </style>

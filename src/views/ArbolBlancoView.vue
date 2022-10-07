@@ -60,8 +60,8 @@ function newRoundHere(){
     <CreatePlayer v-if="!playerStore.player"/>
     <RoomHandler v-if="playerStore.player && !roomStore.room"/>
     <GMRoom v-if="currentGM()" 
-      @swipe-left="makeArbolBlanco"
-      @swipe-right="makeGM" 
+      @swipe-left="makeGM"
+      @swipe-right="makeArbolBlanco" 
       @change-secret-word="changeSecretWord"
       @new-round="newRoundHere"
       v-model:secret-word="secretWord"

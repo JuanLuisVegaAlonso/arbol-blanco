@@ -14,6 +14,17 @@ export const useRoomStore = defineStore({
       const currentRoundInfo = getCurrentRoundInfo(state.room);
       if (!currentRoundInfo) return undefined;
       return currentRoundInfo.secretWord;
+    },
+    players: (state) => {
+      return state.room.players;
+    },
+    currentGm: (state) => {
+      return state.room.currentGM;
+    },
+    currentArbolBlanco: (state) => {
+      const currentRoundInfo = getCurrentRoundInfo(state.room);
+      if (!currentRoundInfo) return undefined;
+      return currentRoundInfo.arbolBlanco;
     }
   },
   actions: {
