@@ -2,6 +2,7 @@
 import { reactive, watch, type RendererElement, type RendererNode, type VNode } from 'vue';
 import Hammer from 'hammerjs';
 import { createLerp, clamp } from '@/maths';
+import { isArbolBlanco } from '@/arbol-blanco';
 
 
 const maxSwipe = 128;
@@ -37,28 +38,35 @@ const emits = defineEmits(["swipeRight", "swipeLeft", "changeSecretWord", "newRo
 
 let alreadyFired = false;
 
-const styleObject = reactive({
+const slabInnerStyle = reactive({
   transform: "none",
-  boxShadow:"none"
+  boxShadow:"none",
+  translateX: 0
 });
+const textStyle = reactive({
+    transform: "none"
+})
 
 const animate = (proportionizedSignedDelta: number) => {
     const proportionizedDelta = Math.abs(proportionizedSignedDelta);
-    styleObject.transform = `translateX(${lerpSwipe(proportionizedDelta) * Math.sign(proportionizedSignedDelta)}px)`;
-    styleObject.boxShadow = `0px 0px ${swipeShadow(proportionizedDelta)}px ${swipeShadow(proportionizedDelta)}px rgba(0,0,0,0.75)`;
+    const translateX = lerpSwipe(proportionizedDelta) * Math.sign(proportionizedSignedDelta);
+    slabInnerStyle.transform = `translateX(${translateX}px)`;
+    slabInnerStyle.boxShadow = `0px 0px ${swipeShadow(proportionizedDelta)}px ${swipeShadow(proportionizedDelta)}px rgba(0,0,0,0.75)`;
+    slabInnerStyle.translateX = translateX;
 }
 const putInPlace = (isGM: boolean, isArbolBlanco: boolean) => {
     let translateX;
     if (isArbolBlanco) {
         translateX = maxMovement;
-        styleObject.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
+        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
     } else if (isGM) {
         translateX = -maxMovement;
-        styleObject.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
+        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
     } else {
         translateX = 0;
     }
-    styleObject.transform = `translateX(${translateX}px)`;
+    slabInnerStyle.translateX = translateX;
+    slabInnerStyle.transform = `translateX(${translateX}px)`;
 }
 watch(() => ({isGM: props.isGM, isArbolBlanco: props.isArbolBlanco}), (current, old) => {
     let {isArbolBlanco, isGM}= current;
@@ -66,6 +74,9 @@ watch(() => ({isGM: props.isGM, isArbolBlanco: props.isArbolBlanco}), (current, 
 });
 watch(() => props.deltaX, current => {
     animate(current);
+})
+watch(() => slabInnerStyle.translateX, current => {
+    textStyle.transform = `translateX(${-current}px)`;
 })
 
 
@@ -92,12 +103,12 @@ function onMounted(event: VNode<RendererNode, RendererElement, {
         }
         if (ev.type == "panmove") {
             emits('deltaX', proportionize(clampSwipe(ev.deltaX) ,maxSwipe));
-            
         }
     });
 }
 
 
+putInPlace(props.isGM, props.isArbolBlanco);
 
 </script>
 
@@ -105,8 +116,8 @@ function onMounted(event: VNode<RendererNode, RendererElement, {
         <div class="slab">
             <div class="modifier behind left"><img src="buttonImages/arbolBlanco.png" alt="ArbolBlanco" :width="imageSize" :height="imageSize"/></div>
             <div class="modifier behind right"><img src="buttonImages/GM.png" alt="GM" :width="imageSize" :height="imageSize"/></div>
-            <div class="slab-inner"  v-on:vnode-mounted="onMounted($event)" :style="styleObject">
-                <span>{{name}}</span>
+            <div class="slab-inner"  v-on:vnode-mounted="onMounted($event)" :style="slabInnerStyle">
+                <span :style="textStyle">{{name}}</span>
             </div>
         </div>
 </template>
