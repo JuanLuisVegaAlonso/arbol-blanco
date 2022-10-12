@@ -2,6 +2,8 @@
 import { getCurrentRoundInfo, isArbolBlanco } from '@/arbol-blanco';
 import { usePlayerStore } from '@/stores/player';
 import { useRoomStore } from '@/stores/room';
+import { ref } from 'vue';
+import Animatext from './animatext.vue';
 
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
@@ -18,12 +20,16 @@ function getSecretWord() {
 function isArbolBlancoHere(){
     return isArbolBlanco(roomStore.room, playerStore.player );
 }
+
 </script>
 
 
 <template>
     <div id="waiting-wrapper">
-        <div v-if="!getSecretWord()">Waiting....</div>
+        <div id="waiting" v-if="!getSecretWord()">
+            
+            <Animatext text="waiting..."/>
+        </div>
         <div v-else-if="isArbolBlancoHere()">Arbol Blanco</div>
         <div v-else>{{getSecretWord()}}</div>
     </div>
@@ -36,5 +42,12 @@ function isArbolBlancoHere(){
     justify-content: center;
     align-items: center;
     flex: 1;
+}
+#waiting {
+    display: flex;
+}
+
+#waiting span:nth-child(0) {
+    justify-self: flex-start;
 }
 </style>
