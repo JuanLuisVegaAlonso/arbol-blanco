@@ -30,6 +30,7 @@ function createRoom() {
                 if (!roomStore.room) return;
                 const player = message.message as Player;
                 join(roomStore.room, player);
+                commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
                 break;
             }
             case MessageTypes.LEAVE_ROOM: {
@@ -40,6 +41,7 @@ function createRoom() {
                 if (player) {
                     remove(roomStore.room, player);
                 }
+                commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
                 break;
             }
             case MessageTypes.CHANGE_GM: {

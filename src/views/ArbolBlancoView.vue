@@ -16,12 +16,12 @@ const roomStore = useRoomStore();
 const commsStore = useCommsStore();
 let secretWord = ref('');
 
-roomStore.$subscribe((mutation, state) => {
-    if (commsStore.isServer && commsStore.client) {
-      console.log("updating via pinia");
-      commsStore.client.sendMessage({ messageType: MessageTypes.UPDATE_STATE, message: state.room });
-    }
-})
+// roomStore.$subscribe((mutation, state) => {
+//     if (commsStore.isServer && commsStore.client) {
+//       console.log("updating via pinia");
+//       commsStore.client.sendMessage({ messageType: MessageTypes.UPDATE_STATE, message: state.room });
+//     }
+// })
 
 
 function currentGM() {
