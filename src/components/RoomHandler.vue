@@ -5,7 +5,7 @@ import { useRoomStore } from '@/stores/room';
 import { useCommsStore } from '@/stores/comms';
 import { ref } from 'vue';
 import type { Player, Room } from '@/arbol-blanco';
-import { getCurrentRoundInfo, join, newRoom, findPlayer, remove } from '@/arbol-blanco';
+import { join, newRoom, findPlayer, remove } from '@/arbol-blanco';
 import type { DataConnection } from 'peerjs';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';

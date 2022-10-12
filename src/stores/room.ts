@@ -1,5 +1,4 @@
 import { defineStore } from "pinia";
-import type { DataConnection } from "peerjs";
 import { changeArbolBlanco, changeGM, changeSecretWord, getCurrentRoundInfo, newRoom, newRound, type Player, type Room } from "@/arbol-blanco";
 import { useCommsStore } from "./comms";
 import { MessageTypes } from "@/comms";

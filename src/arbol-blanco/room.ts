@@ -1,4 +1,4 @@
-import { newPlayer, type Player } from "./player";
+import type { Player } from "./player";
 import { newRoundInfo, type RoundInfo } from "./round-info";
 
 export interface Room {
@@ -22,7 +22,6 @@ export function newRoom(
     const firstRound = newRoundInfo(currentGM);
     roundsInfo.push(firstRound);
   }
-
   return room;
 }
 
