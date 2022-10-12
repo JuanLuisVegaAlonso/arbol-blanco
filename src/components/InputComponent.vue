@@ -23,10 +23,12 @@ const updateValue = (event: any) => {
         padding: 3px;
         text-align: center;
         min-width: 0;
+        color: var(--color-text);
+        background-color: var(--color-background-soft);
     }
     input:disabled {
-        background-color: lightgray;
-        border: 3px solid lightslategrey;
+        background-color: var(--color-background-mute);
+        border: 3px solid var(--color-background-soft);
         cursor: not-allowed;
     }
 </style>

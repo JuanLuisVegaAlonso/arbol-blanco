@@ -22,8 +22,19 @@ function isArbolBlancoHere(){
 
 
 <template>
-    <div v-if="!getSecretWord()">Waiting....</div>
-    <div v-else-if="isArbolBlancoHere()">Arbol Blanco</div>
-    <div v-else>{{getSecretWord()}}</div>
+    <div id="waiting-wrapper">
+        <div v-if="!getSecretWord()">Waiting....</div>
+        <div v-else-if="isArbolBlancoHere()">Arbol Blanco</div>
+        <div v-else>{{getSecretWord()}}</div>
+    </div>
 </template>
   
+
+<style scoped>
+#waiting-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+</style>

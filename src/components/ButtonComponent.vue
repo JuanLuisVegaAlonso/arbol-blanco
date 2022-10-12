@@ -25,11 +25,16 @@ const props = defineProps({
         display: flex;
         flex-direction: column;
         justify-items: center;
+        background-color: var(--color-background);
+        color: var(--color-text)
     }
     button > * {
         margin: 3px;
     }
 
+    div {
+        margin: auto;
+    }
     img {
         image-rendering: pixelated;
     }

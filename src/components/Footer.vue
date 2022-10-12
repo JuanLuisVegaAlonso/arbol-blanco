@@ -1,9 +1,9 @@
 <template>
-    <div>
+    <footer>
         <div>
             <a href="http://www.zone38.net/">Font (codeman38)</a>
         </div>
-    </div>
+    </footer>
 </template>
 
 <style scoped>

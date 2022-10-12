@@ -42,10 +42,13 @@ function removeUser() {
 <style scoped>
 span {
     text-align: center;
+    display: flex;
+    align-items: center;
 }
 header {
     display: flex;
     justify-content: space-around;
+    margin-bottom: 3px;
 }
 
 img {

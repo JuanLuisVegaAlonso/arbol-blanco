@@ -50,7 +50,6 @@ function newRoundHere(){
 </script>
 
 <template>
-  <div>
     <CreatePlayer v-if="!playerStore.player"/>
     <RoomHandler v-if="playerStore.player && !roomStore.room"/>
     <GMRoom v-if="currentGM()" 
@@ -61,7 +60,6 @@ function newRoundHere(){
       v-model:secret-word="secretWord"
       />
     <PlayerWaiting v-if="!currentGM() &&playerStore.player && roomStore.room"/>
-  </div>
 </template>
 
 <style scoped>

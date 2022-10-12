@@ -51,17 +51,17 @@ const animate = (proportionizedSignedDelta: number) => {
     const proportionizedDelta = Math.abs(proportionizedSignedDelta);
     const translateX = lerpSwipe(proportionizedDelta) * Math.sign(proportionizedSignedDelta);
     slabInnerStyle.transform = `translateX(${translateX}px)`;
-    slabInnerStyle.boxShadow = `0px 0px ${swipeShadow(proportionizedDelta)}px ${swipeShadow(proportionizedDelta)}px rgba(0,0,0,0.75)`;
+    slabInnerStyle.boxShadow = `0px 0px ${swipeShadow(proportionizedDelta)}px ${swipeShadow(proportionizedDelta)}px rgba(233,233,233,0.75)`;
     slabInnerStyle.translateX = translateX;
 }
 const putInPlace = (isGM: boolean, isArbolBlanco: boolean) => {
     let translateX;
     if (isArbolBlanco) {
         translateX = maxMovement;
-        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
+        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(233,233,233,0.75)`;
     } else if (isGM) {
         translateX = -maxMovement;
-        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(0,0,0,0.75)`;
+        slabInnerStyle.boxShadow = `0px 0px 0px 0px rgba(233,233,233,0.75)`;
     } else {
         translateX = 0;
     }
@@ -142,7 +142,7 @@ putInPlace(props.isGM, props.isArbolBlanco);
     justify-content: center;
     align-items: center;
     width: 100%;
-    background-color: white;
+    background-color: var(--color-background);
     min-height: 40px;
     cursor: pointer;
 }
