@@ -58,13 +58,13 @@ export function join(self: Room, player: Player) {
 }
 
 export function findPlayer(self: Room, playerStr: string): Player | void {
-  const player = newPlayer(playerStr);
-  const indexOfPlayer = self.players.indexOf(player);
+  const indexOfPlayer = self.players.findIndex(a => a.name === playerStr);
   return indexOfPlayer < 0 ? undefined : self.players[indexOfPlayer];
 }
 
 export function remove(self: Room, player: Player) {
-  const indexOfPlayer = self.players.indexOf(player);
+  const indexOfPlayer = self.players.findIndex((a) => a.name === player.name);
+  console.log("removed: ", indexOfPlayer)
   if (indexOfPlayer < 0) return;
   self.players.splice(indexOfPlayer, 1);
 }

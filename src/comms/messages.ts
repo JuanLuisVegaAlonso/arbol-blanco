@@ -33,3 +33,6 @@ export interface ChangeArbolBlanco {
 export interface NewRound {
 
 }
+export interface LeaveRoom {
+  player: Player;
+}
