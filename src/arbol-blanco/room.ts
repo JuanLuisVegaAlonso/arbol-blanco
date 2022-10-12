@@ -29,6 +29,7 @@ export function newRoom(
 export function changeGM(self: Room, newGm: Player) {
   self.currentGM = newGm;
   const newRound = newRoundInfo(newGm);
+  if (isGM(self, newGm)) return;
   self.roundsInfo.push(newRound);
 }
 

@@ -18,8 +18,8 @@ let secretWord = ref('');
 
 roomStore.$subscribe((mutation, state) => {
     if (commsStore.isServer && commsStore.client) {
-      console.log("updating via pinia")
-        commsStore.client.sendMessage({ messageType: MessageTypes.UPDATE_STATE, message: state.room });
+      console.log("updating via pinia");
+      commsStore.client.sendMessage({ messageType: MessageTypes.UPDATE_STATE, message: state.room });
     }
 })
 
@@ -29,29 +29,23 @@ function currentGM() {
 }
 
 function makeArbolBlanco(player: Player) {
-  changeArbolBlanco(roomStore.room, player);
-  updateState();
+
+  roomStore.changeArbolBlanco(player);
 }
 
 function makeGM(player: Player) {
-  changeGM(roomStore.room, player);
-  updateState();
+  roomStore.changeGM(player);
+  
 }
 
 function changeSecretWord(secretWordInternal: string) {
-  changeSecretWordRoom(roomStore.room, secretWordInternal);
-  secretWord.value = '';
-  updateState();
+  roomStore.changeSecretWord(secretWordInternal);
 }
 
-function updateState() {
-  commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
-}
+
 
 function newRoundHere(){
-  newRound(roomStore.room);
-  secretWord.value = '';
-  updateState();
+  roomStore.newRound();
 }
 </script>
 

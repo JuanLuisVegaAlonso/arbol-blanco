@@ -9,6 +9,7 @@ import { getCurrentRoundInfo, join, newRoom, findPlayer, remove } from '@/arbol-
 import type { DataConnection } from 'peerjs';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';
+import type { ChangeArbolBlanco, ChangeGM, SendSecretWordMessage } from '@/comms/messages';
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
@@ -29,12 +30,6 @@ function createRoom() {
                 if (!roomStore.room) return;
                 const player = message.message as Player;
                 join(roomStore.room, player);
-                console.log("aaaa",roomStore.room);
-                break;
-            }
-            case MessageTypes.UPDATE_STATE: {
-                const room = message.message as Room;
-                roomStore.$patch({ room });
                 break;
             }
             case MessageTypes.LEAVE_ROOM: {
@@ -45,6 +40,25 @@ function createRoom() {
                 if (player) {
                     remove(roomStore.room, player);
                 }
+                break;
+            }
+            case MessageTypes.CHANGE_GM: {
+                const newGmMessage = message.message as ChangeGM;
+                roomStore.changeGM(newGmMessage.newGM);
+                break;
+            }
+            case MessageTypes.CHANGE_ARBOL_BLANCO: {
+                const changeArbolBlancoMessage = message.message as ChangeArbolBlanco;
+                roomStore.changeArbolBlanco(changeArbolBlancoMessage.arbolBlanco);
+                break;
+            }
+            case MessageTypes.NEW_ROUND: {
+                roomStore.newRound();
+                break;
+            }
+            case MessageTypes.SEND_SECRET_WORD: {
+                roomStore.changeSecretWord((message.message as SendSecretWordMessage).secretWord);
+                break;
             }
         }
     });
@@ -52,7 +66,7 @@ function createRoom() {
 
 function joinRoom() {
     if (commsStore.client) {
-        console.log("destroying client")
+        console.log("destroying client");
         commsStore.client.destroy();
     }
     commsStore.client = new Client(playerStore.player.name);
@@ -61,19 +75,15 @@ function joinRoom() {
             case MessageTypes.UPDATE_STATE:
                 const room = message.message as Room;
                 roomStore.$patch({ room });
+                break;
         }
     });
-    console.log("tests");
     commsStore.client.connect(roomStore.roomName).then(() => {
         connectedToRoom.value = true
-        console.log("test");
         commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
     },
     error => console.log(error));
 
-}
-function getRoundInfo() {
-    return roomStore.room ? getCurrentRoundInfo(roomStore.room) : undefined;
 }
 </script>
 

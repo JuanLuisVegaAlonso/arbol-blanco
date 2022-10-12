@@ -2,7 +2,7 @@ import { Peer } from "peerjs";
 import type { DataConnection } from "peerjs";
 import { MessageTypes, type Message } from "./messages";
 
-export class Client {
+export class PeerClient {
   private static uniqueBullshit = "dasdasdasdasdasd-gdfsgdfsgdsf-";
   private peer: Peer;
   private messageListeners: ((message: Message<unknown>) => void)[] = [];
@@ -42,7 +42,7 @@ export class Client {
   }
 
   getPeerName(peerId: string) {
-    return peerId.replace(Client.uniqueBullshit, "");
+    return peerId.replace(PeerClient.uniqueBullshit, "");
   }
   private unsafeConnect(other: string) {
     console.log("unsafe")
@@ -82,7 +82,7 @@ export class Client {
   }
 
   private generatePeerId(name: string) {
-    return Client.uniqueBullshit + name;
+    return PeerClient.uniqueBullshit + name;
   }
 
   
