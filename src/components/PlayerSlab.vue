@@ -114,8 +114,8 @@ putInPlace(props.isGM, props.isArbolBlanco);
 
 <template>
         <div class="slab">
-            <div class="modifier behind left"><img src="buttonImages/arbolBlanco.png" alt="ArbolBlanco" :width="imageSize" :height="imageSize"/></div>
-            <div class="modifier behind right"><img src="buttonImages/GM.png" alt="GM" :width="imageSize" :height="imageSize"/></div>
+            <div class="modifier behind left"><img src="/buttonImages/arbolBlanco.png" alt="ArbolBlanco" :width="imageSize" :height="imageSize"/></div>
+            <div class="modifier behind right"><img src="/buttonImages/GM.png" alt="GM" :width="imageSize" :height="imageSize"/></div>
             <div class="slab-inner"  v-on:vnode-mounted="onMounted($event)" :style="slabInnerStyle">
                 <span :style="textStyle">{{name}}</span>
             </div>
