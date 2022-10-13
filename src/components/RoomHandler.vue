@@ -14,6 +14,7 @@ const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
 let connectedToRoom = ref(false);
+let loading = ref(false);
 
 
 function createRoom() {
@@ -67,6 +68,7 @@ function createRoom() {
 }
 
 function joinRoom() {
+    loading.value = true;
     if (commsStore.client) {
         console.log("destroying client");
         commsStore.client.destroy();
@@ -81,10 +83,12 @@ function joinRoom() {
         }
     });
     commsStore.client.connect(roomStore.roomName).then(() => {
-        connectedToRoom.value = true
+        connectedToRoom.value = true;
+        
         commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
     },
-    error => console.log(error));
+    error => console.log(error),
+    ).then(() => {loading.value = false});
 
 }
 </script>
@@ -95,8 +99,8 @@ function joinRoom() {
     <div id="room-info">
         <input-component v-model="roomStore.roomName" />
         <div class="buttons">
-            <button-component  @click="createRoom" label="Create Room" img="createRoom"/>
-            <button-component  @click="joinRoom" label="Join room" img="joinRoom"/>
+            <button-component :loading="loading"  @click="createRoom" label="Create Room" img="createRoom"/>
+            <button-component :loading="loading" @click="joinRoom" label="Join room" img="joinRoom"/>
         </div>
     </div>
 </template>

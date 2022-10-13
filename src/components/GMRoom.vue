@@ -44,7 +44,7 @@ const deltaXchange = (deltaX: number, index: number, player: Player) => {
 }
 </script>
 <template>
-    <h3>Room: {{roomStore.room.name}}</h3>
+    <h3>{{roomStore.room.name}}</h3>
     <div id="players">
         <PlayerSlab 
             @swipe-left="$emit('swipeLeft', player)" 

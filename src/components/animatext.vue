@@ -9,6 +9,30 @@ let props = defineProps({
         type: String,
         required: true
     },
+    amplitude: {
+        type: Number,
+        default: 10
+    },
+    deltaDesfase: {
+        type: Number,
+        default: 3
+    },
+    desfase: {
+        type: Number,
+        default: -Math.PI
+    },
+    deltaDesfaseEntreLetras: {
+        type: Number,
+        default: 0
+    },
+    increaseDesfaseEntreLetras: {
+        type: Number,
+        default: 0.25
+    },
+    waveFunction: {
+        type: Function,
+        default: (x: number) => Math.sin(x)
+    }
 })
 
 let letters = ref([] as String[]);
@@ -29,18 +53,14 @@ watch(root, rt => {
     requestAnimationFrame(animate);
 } )
 
-
-let delta = 0;
-let oldTime = 0;
-
 let desfase = - Math.PI;
-let deltaDesfase = (Math.PI / 180) * 3;
-let deltaDesfaseEntreLetras = 0;
-let increaseDesfaseEntreLetras = 0.25;
+let deltaDesfase = (Math.PI / 180) * props.deltaDesfase;
+let deltaDesfaseEntreLetras = (Math.PI / 180) * props.deltaDesfaseEntreLetras;
+let increaseDesfaseEntreLetras = (Math.PI / 180) * props.increaseDesfaseEntreLetras;
 
-let amplitude = 10;
+let amplitude = props.amplitude;
 
-let waveFunction = (x: number) => Math.sin(x); 
+let waveFunction = props.waveFunction; 
 
 
 function animate(time: DOMHighResTimeStamp) {
@@ -51,7 +71,7 @@ function animate(time: DOMHighResTimeStamp) {
         desfase = -Math.PI;
     }
 
-    deltaDesfaseEntreLetras += (Math.PI / 180) * increaseDesfaseEntreLetras;
+    deltaDesfaseEntreLetras +=  increaseDesfaseEntreLetras;
 
     if (deltaDesfaseEntreLetras > Math.PI) {
         deltaDesfaseEntreLetras = -Math.PI;
@@ -74,10 +94,13 @@ function animate(time: DOMHighResTimeStamp) {
     </div>
 </template>
 
-<style>
+<style scoped>
     #animatext-wrapper {
         position: relative;
         display: flex;
+    }
+    span {
+        min-width: 1em;
     }
     
 </style>

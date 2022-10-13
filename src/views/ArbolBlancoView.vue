@@ -46,6 +46,7 @@ function changeSecretWord(secretWordInternal: string) {
 
 function newRoundHere(){
   roomStore.newRound();
+  secretWord.value = "";
 }
 </script>
 

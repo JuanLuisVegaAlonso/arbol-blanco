@@ -26,10 +26,10 @@ function removeUser() {
     <header>
         <template v-if="playerStore.player">
             <span>{{ playerStore.player?.name }}</span>
-            <span v-if="playerStore.player" @click="removeUser">
+            <span v-if="playerStore.player" @click="removeUser" class="tappable">
                     <img src="buttonImages/removePeople.png" alt="remove" :width="imageSize" :height="imageSize">
             </span>
-            <span v-if="roomStore.room">
+            <span v-if="roomStore.room" class="tappable">
                 <img src="buttonImages/puerta.png" alt="puerta" @click="exitRoom" :width="imageSize" :height="imageSize">
             </span>
         </template>
@@ -53,5 +53,8 @@ header {
 
 img {
     image-rendering: pixelated;
+}
+.tappable {
+    cursor: pointer;
 }
 </style>
