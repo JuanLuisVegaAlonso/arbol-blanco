@@ -38,7 +38,7 @@ function createRoom() {
                 const connection = message.message as DataConnection;
                 const playerName = commsStore.client!.getPeerName(connection.peer);
                 console.log("Player left" , playerName)
-                const player = findPlayer(roomStore.room, playerName);
+                const player = findPlayer(roomStore.room, playerName!);
                 if (player) {
                     remove(roomStore.room, player);
                 }
@@ -73,7 +73,7 @@ function joinRoom() {
         console.log("destroying client");
         commsStore.client.destroy();
     }
-    commsStore.client = new Client(playerStore.player.name);
+    commsStore.client = new Client(roomStore.roomName, playerStore.player.name);
     commsStore.client.addListener((message) => {
         switch (message.messageType) {
             case MessageTypes.UPDATE_STATE:

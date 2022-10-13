@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Animatext from "./animatext.vue";
+import Animatext from "./Animatext.vue";
 const props = defineProps({
     label: {
         type: String,

@@ -2,8 +2,7 @@
 import { getCurrentRoundInfo, isArbolBlanco } from '@/arbol-blanco';
 import { usePlayerStore } from '@/stores/player';
 import { useRoomStore } from '@/stores/room';
-import { ref } from 'vue';
-import Animatext from './animatext.vue';
+import Animatext from './Animatext.vue';
 
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
