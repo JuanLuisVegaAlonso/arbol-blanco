@@ -7,6 +7,9 @@ export const usePlayerStore = defineStore({
     name: "",
     player: undefined  as unknown as Player
   }),
+  getters: {
+    playerName: (state) => state.player?.name
+  },
   actions: {
     setName(name: string) {
       this.name = name;
