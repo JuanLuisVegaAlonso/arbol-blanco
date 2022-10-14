@@ -3,7 +3,7 @@ import { useRoomStore } from "@/stores/room";
 import { usePlayerStore } from "@/stores/player";
 import { ref } from "vue";
 import type { Player, Room } from "@/arbol-blanco";
-import { Client, MessageTypes } from "@/comms";
+import { PeerClient, MessageTypes } from "@/comms";
 import type { Ref } from "vue";
 import { newPlayer } from "@/arbol-blanco/player";
 import { newRoom } from "@/arbol-blanco/room";
@@ -11,12 +11,12 @@ import { newRoom } from "@/arbol-blanco/room";
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const message = ref("");
-let roomComms: Client;
+let roomComms: PeerClient;
 let room: Room | void;
 let player: Player | void;
 let connectedToRoom = false;
 
-let client: Client;
+let client: PeerClient;
 const messages: Ref<string[]> = ref([]);
 
 function createRoom(roomName: string) {
@@ -27,7 +27,7 @@ function createRoom(roomName: string) {
   if (roomComms) {
     roomComms.destroy();
   }
-  roomComms = new Client(roomStore.roomName);
+  roomComms = new PeerClient(roomStore.roomName);
   roomComms.addListener((message) => {
     switch (message.messageType) {
       case MessageTypes.SEND_SECRET_WORD:
@@ -40,7 +40,7 @@ function connectToRoom() {
   if (client) {
     client.destroy();
   }
-  client = new Client(playerStore.name);
+  client = new PeerClient(playerStore.name);
   client.connect(roomStore.roomName).then(() => connectedToRoom = true);
   client.addListener((message) => {
     switch (message.messageType) {

@@ -2,6 +2,16 @@ import { Peer } from "peerjs";
 import type { DataConnection } from "peerjs";
 import { MessageTypes, type Message } from "./messages";
 
+
+export enum PeerErrorType {
+  NOT_FOUND = 1,
+  UNKNOWN = 99
+}
+
+export interface PeerError {
+  type: PeerErrorType;
+  message: string;
+}
 export class PeerClient {
   private static uniqueBullshit = "dasdasdasdasdasd1223gdfsgdfsgdsf23123";
   private static separator = "_"
@@ -15,7 +25,7 @@ export class PeerClient {
   constructor(public roomName: string , public name: string | void = undefined) {
     this.peer = new Peer(this.generatePeerId(roomName, name));
     this.peer.on("open", this.onPeerOpen.bind(this));
-    this.peer.on("error", (error) => this.errorConnection ? this.errorConnection(error) : undefined);
+    this.peer.on("error", (error) => this.errorConnection ? this.errorConnection(this.handleError(error)) : undefined);
   }
 
   sendMessage<T>(message: Message<T>) {
@@ -52,6 +62,7 @@ export class PeerClient {
     }
     return name;
   }
+
   private unsafeConnect(other: string) {
     console.log("unsafe")
     const connection = this.peer.connect(this.generatePeerId(other));
@@ -63,7 +74,7 @@ export class PeerClient {
       this.messageListeners.forEach((listener) => listener(message));
     });
     
-    connection.on("error", (error) => this.errorConnection!(error as any));
+    connection.on("error", (error) => this.errorConnection!(this.handleError(error)));
     
   }
   private onPeerOpen() {
@@ -91,6 +102,15 @@ export class PeerClient {
 
   private generatePeerId(roomName: string, name: string | void ) {
     return roomName ? `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}${PeerClient.separator}${name}` : `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}`;
+  }
+
+  private handleError(error: Error): PeerError {
+    console.log(error.message)
+    let peerError: PeerError = {type: PeerErrorType.UNKNOWN, message: error.message};
+    if (error.message.startsWith("Could not connect to peer")) {
+      peerError.type = PeerErrorType.NOT_FOUND;
+    }
+    return peerError;
   }
 
   

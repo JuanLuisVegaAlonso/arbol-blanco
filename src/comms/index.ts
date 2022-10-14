@@ -1,4 +1,3 @@
-import { PeerClient } from "./peerClient";
-import { MessageTypes } from "./messages";
+export * from "./peerClient";
+export * from "./messages";
 
-export { PeerClient as Client, MessageTypes };

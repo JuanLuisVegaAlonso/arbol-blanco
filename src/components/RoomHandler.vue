@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { MessageTypes, Client } from '@/comms';
+import { MessageTypes , PeerClient,type PeerError, PeerErrorType } from '@/comms';
 import { usePlayerStore } from '@/stores/player';
 import { useRoomStore } from '@/stores/room';
 import { useCommsStore } from '@/stores/comms';
 import { ref } from 'vue';
 import type { Player, Room } from '@/arbol-blanco';
 import { join, newRoom, findPlayer, remove } from '@/arbol-blanco';
-import type { DataConnection } from 'peerjs';
+import  type {DataConnection}  from 'peerjs';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';
 import type { ChangeArbolBlanco, ChangeGM, SendSecretWordMessage } from '@/comms/messages';
@@ -24,7 +24,7 @@ function createRoom() {
     if (commsStore.client) {
         commsStore.client.destroy();
     }
-    commsStore.client = new Client(roomStore.roomName);
+    commsStore.client = new PeerClient(roomStore.roomName);
     commsStore.client.addListener((message) => {
         console.log(message);
         switch (message.messageType) {
@@ -70,11 +70,12 @@ function createRoom() {
 
 function joinRoom() {
     loading.value = true;
+    roomExists.value = true
     if (commsStore.client) {
         console.log("destroying client");
         commsStore.client.destroy();
     }
-    commsStore.client = new Client(roomStore.roomName, playerStore.player.name);
+    commsStore.client = new PeerClient(roomStore.roomName, playerStore.player.name);
     commsStore.client.addListener((message) => {
         switch (message.messageType) {
             case MessageTypes.UPDATE_STATE:
@@ -85,14 +86,27 @@ function joinRoom() {
     });
     commsStore.client.connect(roomStore.roomName).then(() => {
         connectedToRoom.value = true;
-        
         commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
     },
-    error => console.log(error),
+    error => {
+        const peerError = error as PeerError;
+        switch (peerError.type) {
+            case PeerErrorType.NOT_FOUND: 
+            roomExists.value = false;
+            break;
+            case PeerErrorType.UNKNOWN:
+                console.error("Undefined error", peerError.message);
+            break;
+            default:
+            const exhaustiveCheck: never = peerError.type;
+            throw new Error(`Unhandled color case: ${exhaustiveCheck}`);
+        }
+        console.log(error)},
     ).then(() => {loading.value = false});
 
 }
-const validName = ref(false);
+const validName = ref(true);
+const roomExists = ref(true);
 roomStore.$subscribe((mutation, state) => {
     console.log(state)
     if (state.roomName) {
@@ -105,12 +119,13 @@ roomStore.$subscribe((mutation, state) => {
 <template>
     <h2>Room</h2>
     <div id="room-info">
-        <input-component v-model="roomStore.roomName" />
+        <input-component :disabled="loading" v-model="roomStore.roomName" />
         <label class="invalid" v-if="!validName">Invalid name</label>
         <div class="buttons">
             <button-component :loading="loading"  @click="createRoom" label="Create Room" img="createRoom"/>
             <button-component :loading="loading" @click="joinRoom" label="Join room" img="joinRoom"/>
         </div>
+        <span v-if="!roomExists">Room doesn't exist, create one</span>
     </div>
     
 </template>

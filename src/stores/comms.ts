@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import type { Client } from "@/comms";
+import type { PeerClient } from "@/comms";
 
 export const useCommsStore = defineStore({
   id: "comms",
   state: () => ({
-    client: undefined as unknown as Client | void,
+    client: undefined as unknown as PeerClient | void,
     isServer: false
   }),
   getters: {
