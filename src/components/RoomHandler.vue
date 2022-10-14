@@ -10,6 +10,7 @@ import type { DataConnection } from 'peerjs';
 import InputComponent from './InputComponent.vue';
 import ButtonComponent from './ButtonComponent.vue';
 import type { ChangeArbolBlanco, ChangeGM, SendSecretWordMessage } from '@/comms/messages';
+import { evalue, required, validPeerId } from '@/validation';
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
@@ -91,6 +92,13 @@ function joinRoom() {
     ).then(() => {loading.value = false});
 
 }
+const validName = ref(false);
+roomStore.$subscribe((mutation, state) => {
+    console.log(state)
+    if (state.roomName) {
+        validName.value = evalue(state.roomName, required, validPeerId);
+    }});
+
 </script>
 
 
@@ -98,11 +106,13 @@ function joinRoom() {
     <h2>Room</h2>
     <div id="room-info">
         <input-component v-model="roomStore.roomName" />
+        <label class="invalid" v-if="!validName">Invalid name</label>
         <div class="buttons">
             <button-component :loading="loading"  @click="createRoom" label="Create Room" img="createRoom"/>
             <button-component :loading="loading" @click="joinRoom" label="Join room" img="joinRoom"/>
         </div>
     </div>
+    
 </template>
   <style scoped>
     * {
@@ -118,5 +128,9 @@ function joinRoom() {
     }
     .buttons > * {
         margin: 3px;
+    }
+    .invalid {
+        color: #980023;
+        font-size: 22px;
     }
   </style>
