@@ -2,7 +2,6 @@
 import { reactive, watch, type RendererElement, type RendererNode, type VNode } from 'vue';
 import Hammer from 'hammerjs';
 import { createLerp, clamp } from '@/maths';
-import { isArbolBlanco } from '@/arbol-blanco';
 
 
 const maxSwipe = 128;

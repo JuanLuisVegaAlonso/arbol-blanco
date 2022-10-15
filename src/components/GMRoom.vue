@@ -1,10 +1,10 @@
 
 <script setup lang="ts">
-import { isArbolBlanco , isGM, isRoundLive, type Player, type Player as PlayerType } from '@/arbol-blanco';
+import { isArbolBlanco , isGM, isRoundLive, type Player} from '@/arbol-blanco';
 import { useRoomStore } from '@/stores/room';
 import PlayerSlab from './PlayerSlab.vue';
-import InputComponent from './InputComponent.vue';
-import ButtonComponent from './ButtonComponent.vue';
+import InputComponent from './generic/InputComponent.vue';
+import ButtonComponent from './generic/ButtonComponent.vue';
 import { reactive } from 'vue';
 
 

@@ -3,9 +3,9 @@ import { newPlayer } from '@/arbol-blanco/player';
 import { usePlayerStore } from '@/stores/player';
 import { ref } from 'vue';
 import {evalue, required, validPeerId} from '@/validation';
-import ButtonComponent from './ButtonComponent.vue';
-import InputComponent from './InputComponent.vue';
-import ErrorComponent from './ErrorComponent.vue';
+import ButtonComponent from './generic/ButtonComponent.vue';
+import InputComponent from './generic/InputComponent.vue';
+import ErrorComponent from './generic/ErrorComponent.vue';
 
 const playerStore = usePlayerStore();
 let message = ref();
