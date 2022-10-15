@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MessageTypes , PeerClient,type PeerError, PeerErrorType } from '@/comms';
+import { MessageTypes , PeerClient,type PeerError, PeerErrorType, type JoinRoom } from '@/comms';
 import { usePlayerStore } from '@/stores/player';
 import { useRoomStore } from '@/stores/room';
 import { useCommsStore } from '@/stores/comms';
@@ -9,11 +9,13 @@ import { join, newRoom, findPlayer, remove } from '@/arbol-blanco';
 import  type {DataConnection}  from 'peerjs';
 import InputComponent from './generic/InputComponent.vue';
 import ButtonComponent from './generic/ButtonComponent.vue';
+import ErrorComponent from './generic/ErrorComponent.vue';
 import type { ChangeArbolBlanco, ChangeGM, SendSecretWordMessage } from '@/comms/messages';
 import { evalue, required, validPeerId } from '@/validation';
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
+playerStore.nameAlreadyTaken = false;
 let connectedToRoom = ref(false);
 let loading = ref(false);
 
@@ -30,20 +32,30 @@ function createRoom() {
         switch (message.messageType) {
             case MessageTypes.JOIN_ROOM: {
                 if (!roomStore.room) return;
-                const player = message.message as Player;
-                join(roomStore.room, player);
-                commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
+                const joinRoom = message.message as JoinRoom;
+                if (findPlayer(roomStore.room, joinRoom.player.name)) {
+                    commsStore.pendingRemove.push(joinRoom);
+                    commsStore.client!.sendMessage({messageType: MessageTypes.REJECTED, message: undefined});
+                } else {
+                    join(roomStore.room, joinRoom.player);
+                }
                 break;
             }
             case MessageTypes.LEAVE_ROOM: {
                 const connection = message.message as DataConnection;
                 const playerName = commsStore.client!.getPeerName(connection.peer);
                 console.log("Player left" , playerName)
-                const player = findPlayer(roomStore.room, playerName!);
-                if (player) {
-                    remove(roomStore.room, player);
+                const playerNotNeededToBeRemoved = commsStore.pendingRemove.findIndex(pl => pl.player.name === playerName);
+                if (playerNotNeededToBeRemoved > -1) {
+                    commsStore.pendingRemove.splice(playerNotNeededToBeRemoved, 1);
+                } else {
+                    const player = findPlayer(roomStore.room, playerName!);
+                    if (player) {
+                        remove(roomStore.room, player);
+                    }
+                    commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
                 }
-                commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
+                
                 break;
             }
             case MessageTypes.CHANGE_GM: {
@@ -72,6 +84,7 @@ function joinRoom() {
     commsStore.isServer = false;
     loading.value = true;
     roomExists.value = true
+    playerStore.nameAlreadyTaken = false;
     if (commsStore.client) {
         console.log("destroying client");
         commsStore.client.destroy();
@@ -83,11 +96,14 @@ function joinRoom() {
                 const room = message.message as Room;
                 roomStore.$patch({ room });
                 break;
+            case MessageTypes.REJECTED: 
+                commsStore.client!.destroy();
+                playerStore.nameAlreadyTaken = true;
         }
     });
     commsStore.client.connect(roomStore.roomName).then(() => {
         connectedToRoom.value = true;
-        commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: playerStore.player });
+        commsStore.client!.sendMessage({ messageType: MessageTypes.JOIN_ROOM, message: {player: playerStore.player, peerId: commsStore.client!.peerId} });
     },
     error => {
         const peerError = error as PeerError;
@@ -122,6 +138,7 @@ roomStore.$subscribe((mutation, state) => {
     <div id="room-info">
         <input-component :disabled="loading" v-model="roomStore.roomName" />
         <error-component v-if="!validName" message="Invalid name"/>
+        <error-component v-if="playerStore.nameAlreadyTaken" message="Name taken"/>
         <div class="buttons">
             <button-component :loading="loading"  @click="createRoom" label="Create Room" img="createRoom"/>
             <button-component :loading="loading" @click="joinRoom" label="Join room" img="joinRoom"/>

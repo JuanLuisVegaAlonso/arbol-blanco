@@ -5,7 +5,8 @@ export const usePlayerStore = defineStore({
   id: "player",
   state: () => ({
     name: "",
-    player: undefined  as unknown as Player
+    player: undefined  as unknown as Player,
+    nameAlreadyTaken: false
   }),
   getters: {
     playerName: (state) => state.player?.name

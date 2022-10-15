@@ -7,7 +7,8 @@ export enum MessageTypes {
   LEAVE_ROOM = 4,
   CHANGE_GM = 5,
   CHANGE_ARBOL_BLANCO = 6,
-  NEW_ROUND = 7
+  NEW_ROUND = 7,
+  REJECTED = 8
 }
 
 export interface MessageTest {
@@ -16,7 +17,7 @@ export interface MessageTest {
 
 export interface Message<T> {
   messageType: MessageTypes;
-  message: T;
+  message: T | void;
 }
 
 export interface SendSecretWordMessage {
@@ -33,6 +34,7 @@ export interface ChangeArbolBlanco {
 export interface NewRound {
 
 }
-export interface LeaveRoom {
+export interface JoinRoom {
   player: Player;
+  peerId: string;
 }

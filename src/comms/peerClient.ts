@@ -22,6 +22,10 @@ export class PeerClient {
   private pendingConnections: string[] = [];
   private resolveConnection: ((value: void | PromiseLike<void>) => void) | undefined;
   private errorConnection: ((value: any) => void) | undefined;
+
+  get peerId() {
+    return this.peer.id;
+  }
   constructor(public roomName: string , public name: string | void = undefined) {
     this.peer = new Peer(this.generatePeerId(roomName, name));
     this.peer.on("open", this.onPeerOpen.bind(this));
