@@ -28,7 +28,7 @@ roomStore.$subscribe((mutation, state) => {
 const deltaXchange = (deltaX: number, index: number, player: Player) => {
 
     
-    if (!isGM(roomStore.room, player)) {
+    if (!isGM(roomStore.room, player) && !isRoundLive(roomStore.room)) {
         for(let i = 0; i < deltaXs.length; i++) {
             if (deltaX < 0 && (roomStore.currentGm && roomStore.currentGm.name === roomStore.players[i].name) ) {
                 deltaXs[i] = - 1 - deltaX;

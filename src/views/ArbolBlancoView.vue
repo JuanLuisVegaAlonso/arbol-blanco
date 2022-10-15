@@ -5,7 +5,7 @@ import GMRoom from "../components/GMRoom.vue";
 import PlayerWaiting from "../components/PlayerWaiting.vue";
 import { usePlayerStore } from "@/stores/player";
 import { useRoomStore } from "@/stores/room";
-import { isGM, type Player, changeArbolBlanco, changeGM, changeSecretWord as changeSecretWordRoom, newRound } from "@/arbol-blanco";
+import { isGM, type Player, changeArbolBlanco, changeGM, changeSecretWord as changeSecretWordRoom, newRound, isRoundLive } from "@/arbol-blanco";
 import { useCommsStore } from "@/stores/comms";
 import { MessageTypes } from "@/comms";
 import { ref } from "vue";
@@ -29,12 +29,17 @@ function currentGM() {
 }
 
 function makeArbolBlanco(player: Player) {
-
-  roomStore.changeArbolBlanco(player);
+  if (!isRoundLive(roomStore.room)) {
+    roomStore.changeArbolBlanco(player);
+  }
+  
 }
 
 function makeGM(player: Player) {
-  roomStore.changeGM(player);
+  if (!isRoundLive(roomStore.room)) {
+    roomStore.changeGM(player);
+  }
+  
   
 }
 
