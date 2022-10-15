@@ -69,6 +69,7 @@ function createRoom() {
 }
 
 function joinRoom() {
+    commsStore.isServer = false;
     loading.value = true;
     roomExists.value = true
     if (commsStore.client) {

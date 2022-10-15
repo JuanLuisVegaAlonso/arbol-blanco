@@ -56,9 +56,9 @@ export class PeerClient {
     const parts = peerId.split(PeerClient.separator);
     let name;
     if (parts.length == 3) {
-      name = parts[3];
-    } else if (parts.length == 2) {
       name = parts[2];
+    } else if (parts.length == 2) {
+      name = parts[1];
     }
     return name;
   }
@@ -101,7 +101,7 @@ export class PeerClient {
   }
 
   private generatePeerId(roomName: string, name: string | void ) {
-    return roomName ? `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}${PeerClient.separator}${name}` : `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}`;
+    return name ? `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}${PeerClient.separator}${name}` : `${PeerClient.uniqueBullshit}${PeerClient.separator}${roomName}`;
   }
 
   private handleError(error: Error): PeerError {
