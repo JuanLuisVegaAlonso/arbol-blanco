@@ -44,7 +44,9 @@ function makeGM(player: Player) {
 }
 
 function changeSecretWord(secretWordInternal: string) {
-  roomStore.changeSecretWord(secretWordInternal);
+  if (roomStore.currentArbolBlanco) {
+    roomStore.changeSecretWord(secretWordInternal);
+  }
 }
 
 
