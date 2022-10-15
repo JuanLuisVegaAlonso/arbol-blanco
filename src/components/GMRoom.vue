@@ -42,9 +42,30 @@ const deltaXchange = (deltaX: number, index: number, player: Player) => {
     }
     
 }
+
+
+const share = () => {
+  if (navigator.share) {
+    navigator.share({
+        title: 'Arbol blanco invitation',
+        text: `You have been invited to room ${roomStore.room.name}`,
+        url: `${window.location.href}roomInvite/${roomStore.room.name}`,
+      })
+      .then(() => console.log('Successful share'))
+      .catch((error) => console.log('Error sharing', error));
+  } else {
+    console.log('Share not supported on this browser, do it the old way.');
+  }
+}
 </script>
 <template>
-    <h3>{{roomStore.room.name}}</h3>
+    <div id="roomHeader">
+        <h3>
+            {{roomStore.room.name}}
+            
+        </h3>
+        <img :click="share" src="/buttonImages/share.png"/>
+    </div>
     <div id="players">
         <PlayerSlab 
             @swipe-left="$emit('swipeLeft', player)" 
@@ -84,7 +105,23 @@ const deltaXchange = (deltaX: number, index: number, player: Player) => {
 .buttons > * {
     margin: 3px;
 }
-h3 {
+#roomHeader {
     text-align: center;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-items: baseline;
+    align-items: center;
+    width: 100%;
+}
+#roomHeader > h3 {
+    flex: 1;
+} 
+#roomHeader img {
+    image-rendering: pixelated;
+    width: 32px;
+    margin: 0;
+    cursor: pointer;
+
 }
 </style>
