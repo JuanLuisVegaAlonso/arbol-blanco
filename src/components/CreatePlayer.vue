@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { newPlayer } from '@/arbol-blanco/player';
 import { usePlayerStore } from '@/stores/player';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import {evalue, required, validPeerId} from '@/validation';
 import ButtonComponent from './ButtonComponent.vue';
 import InputComponent from './InputComponent.vue';
+import ErrorComponent from './ErrorComponent.vue';
 
 const playerStore = usePlayerStore();
 let message = ref();
-const validName = ref(false);
+const validName = ref(playerStore.name !== undefined ? evalue(playerStore.name, required, validPeerId) : true);
 
 function createPlayer() {
     if (validName.value) {
@@ -19,7 +20,7 @@ function createPlayer() {
 
 playerStore.$subscribe((mutation, state) => {
     console.log(state)
-    if (state.name) {
+    if (state.name !== undefined) {
         validName.value = evalue(state.name, required, validPeerId);
     }});
 
@@ -30,7 +31,7 @@ playerStore.$subscribe((mutation, state) => {
     <div id="player">
         <h2>Player</h2>
         <input-component v-model="playerStore.name" />
-        <label class="invalid" v-if="!validName">Invalid name</label>
+        <error-component v-if="!validName" message="Invalid name"/>
         <div class="buttons">
             <button-component  @click="createPlayer" label="Create player" img="addPeople"/>
         </div>
@@ -44,10 +45,6 @@ playerStore.$subscribe((mutation, state) => {
     flex-direction: column;
 }
 
-.invalid {
-    color: #980023;
-    font-size: 22px;
-}
 .buttons {
     display: flex;
     justify-content: space-around;

@@ -121,7 +121,7 @@ roomStore.$subscribe((mutation, state) => {
     <h2>Room</h2>
     <div id="room-info">
         <input-component :disabled="loading" v-model="roomStore.roomName" />
-        <label class="invalid" v-if="!validName">Invalid name</label>
+        <error-component v-if="!validName" message="Invalid name"/>
         <div class="buttons">
             <button-component :loading="loading"  @click="createRoom" label="Create Room" img="createRoom"/>
             <button-component :loading="loading" @click="joinRoom" label="Join room" img="joinRoom"/>
@@ -144,9 +144,5 @@ roomStore.$subscribe((mutation, state) => {
     }
     .buttons > * {
         margin: 3px;
-    }
-    .invalid {
-        color: #980023;
-        font-size: 22px;
     }
   </style>
