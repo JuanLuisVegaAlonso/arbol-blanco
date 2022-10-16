@@ -10,12 +10,14 @@ const props = defineProps({
     loading: Boolean
 })
 
-
+function getImageUrl(img: string|undefined) {
+  return `${import.meta.env.BASE_URL}buttonImages/${img}.png`;
+}
 </script>
 <template>
     <button :disabled="disabled || loading"  @click="$emit('click')">
         <div>
-            <img :src="`/buttonImages/${img}.png`" width = "64" height = "64">
+            <img :src="getImageUrl(img)" width = "64" height = "64">
         </div>
         <span :style="{visibility: loading ? 'hidden' : 'visible'}"> {{label}}</span>
         <Animatext v-if="loading" :text="label" :amplitude="3" :delta-desfase="8" :delta-desfase-entre-letras="60" :increase-desfase-entre-letras="0" />
