@@ -9,6 +9,7 @@ import { isGM, type Player, changeArbolBlanco, changeGM, changeSecretWord as cha
 import { useCommsStore } from "@/stores/comms";
 import { MessageTypes } from "@/comms";
 import { ref } from "vue";
+import Background from "../components/Background.vue";
 
 
 const playerStore = usePlayerStore();
@@ -58,6 +59,7 @@ function newRoundHere(){
 </script>
 
 <template>
+    <Background/>
     <CreatePlayer v-if="!playerStore.player"/>
     <RoomHandler v-if="playerStore.player && !roomStore.room"/>
     <GMRoom v-if="currentGM()" 
