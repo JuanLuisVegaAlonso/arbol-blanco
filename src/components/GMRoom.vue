@@ -64,7 +64,7 @@ const share = () => {
             {{roomStore.room.name}}
             
         </h3>
-        <img :click="share" src="/buttonImages/share.png"/>
+        <img @click="share" src="/buttonImages/share.png"/>
     </div>
     <div id="players">
         <PlayerSlab 
