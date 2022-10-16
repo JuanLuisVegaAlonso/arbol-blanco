@@ -19,6 +19,10 @@ function exitRoom() {
 }
 
 function removeUser() {
+     if (commsStore.client) {
+        commsStore.client.destroy();
+        commsStore.$patch({client: undefined});
+    }
     playerStore.$patch({player: undefined});
 }
 </script>

@@ -3,7 +3,7 @@ import { MessageTypes , PeerClient,type PeerError, PeerErrorType, type JoinRoom 
 import { usePlayerStore } from '@/stores/player';
 import { useRoomStore } from '@/stores/room';
 import { useCommsStore } from '@/stores/comms';
-import { ref } from 'vue';
+import { ref, watchEffect } from 'vue';
 import type { Player, Room } from '@/arbol-blanco';
 import { join, newRoom, findPlayer, remove } from '@/arbol-blanco';
 import  type {DataConnection}  from 'peerjs';
@@ -12,6 +12,7 @@ import ButtonComponent from './generic/ButtonComponent.vue';
 import ErrorComponent from './generic/ErrorComponent.vue';
 import type { ChangeArbolBlanco, ChangeGM, SendSecretWordMessage } from '@/comms/messages';
 import { evalue, required, validPeerId } from '@/validation';
+import { joinRoomFeature } from '@/features/joinRoom';
 const roomStore = useRoomStore();
 const playerStore = usePlayerStore();
 const commsStore = useCommsStore();
@@ -33,11 +34,13 @@ function createRoom() {
             case MessageTypes.JOIN_ROOM: {
                 if (!roomStore.room) return;
                 const joinRoom = message.message as JoinRoom;
+                console.log("pending,remove", commsStore.pendingRemove);
                 if (findPlayer(roomStore.room, joinRoom.player.name)) {
                     commsStore.pendingRemove.push(joinRoom);
                     commsStore.client!.sendMessage({messageType: MessageTypes.REJECTED, message: undefined});
                 } else {
                     join(roomStore.room, joinRoom.player);
+                    commsStore.client!.sendMessage({messageType: MessageTypes.UPDATE_STATE, message: roomStore.room});
                 }
                 break;
             }
@@ -79,6 +82,7 @@ function createRoom() {
         }
     });
 }
+const roomExists = ref(true);
 
 function joinRoom() {
     commsStore.isServer = false;
@@ -123,7 +127,7 @@ function joinRoom() {
 
 }
 const validName = ref(true);
-const roomExists = ref(true);
+
 roomStore.$subscribe((mutation, state) => {
     console.log(state)
     if (state.roomName) {

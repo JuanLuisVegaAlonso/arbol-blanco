@@ -45,16 +45,17 @@ const deltaXchange = (deltaX: number, index: number, player: Player) => {
 
 
 const share = () => {
+    const url = `${window.location.href}roomInvite/${roomStore.room.name}`;
   if (navigator.share) {
     navigator.share({
         title: 'Arbol blanco invitation',
         text: `You have been invited to room ${roomStore.room.name}`,
-        url: `${window.location.href}roomInvite/${roomStore.room.name}`,
+        url,
       })
       .then(() => console.log('Successful share'))
       .catch((error) => console.log('Error sharing', error));
   } else {
-    console.log('Share not supported on this browser, do it the old way.');
+    navigator.clipboard.writeText(url);
   }
 }
 </script>
@@ -62,7 +63,6 @@ const share = () => {
     <div id="roomHeader">
         <h3>
             {{roomStore.room.name}}
-            
         </h3>
         <img @click="share" src="/buttonImages/share.png"/>
     </div>
