@@ -19,9 +19,12 @@ function exitRoom() {
 }
 
 function removeUser() {
-     if (commsStore.client) {
+    if (commsStore.client) {
         commsStore.client.destroy();
         commsStore.$patch({client: undefined});
+    }
+    if (roomStore.room) {
+        roomStore.$patch({room: undefined});
     }
     playerStore.$patch({player: undefined});
 }
