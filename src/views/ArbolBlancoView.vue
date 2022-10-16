@@ -59,7 +59,7 @@ function newRoundHere(){
 </script>
 
 <template>
-    <Background/>
+    
     <CreatePlayer v-if="!playerStore.player"/>
     <RoomHandler v-if="playerStore.player && !roomStore.room"/>
     <GMRoom v-if="currentGM()" 

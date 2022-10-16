@@ -2,10 +2,12 @@
 import { RouterLink, RouterView } from "vue-router";
 import Footer from "./components/Footer.vue";
 import HeaderComponent from "./components/HeaderComponent.vue";
+import Background from "./components/Background.vue";
 
 </script>
 
 <template>
+  <Background/>
   <HeaderComponent id="header" />
   <div id="content">
 
