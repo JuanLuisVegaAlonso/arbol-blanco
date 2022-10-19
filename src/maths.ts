@@ -44,3 +44,9 @@ export function easeOutCubic(x: number): number {
 export function easeInCubic(x: number): number {
     return x * x * x;
 }
+
+export function distanceSquared(pointOne: [number, number], pointTwo: [number, number]) {
+    const x = pointTwo[0] - pointOne[0];
+    const y = pointTwo[1] - pointOne[1];
+    return x*x +y*y;
+}

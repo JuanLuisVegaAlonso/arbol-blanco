@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createLerp, easeOutCubic,  easeInCubic} from '@/maths';
+import { createLerp, distanceSquared, easeOutCubic,  easeInCubic} from '@/maths';
 import { ref, watchEffect } from 'vue';
 import {rgbToHsl, line } from '@/canvasUtils';
 
@@ -14,93 +14,84 @@ type Particle = {
 type Link = {
     from: Particle;
     to: Particle;
-    gradient: CanvasGradient;
+}
+
+type DilationMatrix = {
+    matrixInBinary: number;
+    size: number;
+}
+
+function copyParticleOtherPosition(particle: Particle, newPos: [number, number]): Particle {
+    return {...particle, pos: newPos};
 }
 
 const availableColors:[number, number, number][] = [
-    [255, 0, 255],
-    [255, 0, 0],
-    [255, 0, 255],
-    [0, 255, 255],
-    [0, 255, 0],
-    [0, 0, 255],
-    [255, 255, 0]
+    [225, 0, 169],
+    [255, 30, 0],
+    [0, 226, 59],
+    [188, 249, 0]
 ]
 
-const resCanvas = 1024;
+const debugEnabled = ref(false);
+
 const resImage = 256;
-const resRatio = resCanvas/ resImage;
+const backgroundCanvasResolution: [number, number] = [2560, 1440];
+const linkCanvasResolution: [number, number] = [resImage, resImage];
+const resRatio = [backgroundCanvasResolution[0]/ linkCanvasResolution[0], backgroundCanvasResolution[1]/ linkCanvasResolution[1]];
+const density = 40;
 
-const maxRes: [number, number] = [resCanvas, resCanvas];
-const maxResGradient: [number, number] = [resImage, resImage];
-
-const density = 25;
-
-let numberOfParticles = 30;
+const numberOfParticles = ref(30);
 const maxSpeed = 3;
-const minSpeed = 1;
+const minSpeed = 0.25;
 let particles: Particle[] = [];
 const closenessRadius = 200;
 const closenessRadiusSquared = closenessRadius * closenessRadius;
 const speedRadius = 10;
-let gradientImage: ImageData;
-
-let aditionalCuadrants: [number, number][];
 
 const canvas = ref(null as unknown as HTMLCanvasElement);
 const linkCanvas = document.createElement('canvas');
-linkCanvas.id="link-canvas"
-linkCanvas.style.top = "0";
-linkCanvas.style.left = "0";
-linkCanvas.style.position = "absolute";
-//document.body.appendChild(linkCanvas);
-linkCanvas.width = maxRes[0];
-linkCanvas.height = maxRes[1];
+linkCanvas.width = backgroundCanvasResolution[0];
+linkCanvas.height = backgroundCanvasResolution[1];
 
-
+let animationRequest: number;
 watchEffect(() => {
-    console.log(canvas.value);
     if (canvas.value) {
         calculateResolution();
-        calculateNumberOfParticles();
+        calculateNumberOfParticles(canvas.value);
         const ctx = canvas.value.getContext('2d')!;
-        createParticles();
-        particles.forEach(drawParticle);
-        window.requestAnimationFrame(animate);
+        particles = createParticles(availableColors, numberOfParticles.value, canvas.value);
+        particles.forEach(particle => drawParticle(ctx, particle));
+        if (!animationRequest) {
+            animationRequest = window.requestAnimationFrame(animate);
+        }
+        
     }
 });
 
-function calculateNumberOfParticles() {
-    const {width, height} = canvas.value;
-    numberOfParticles = Math.floor((density/1000000) * width * height);
+function calculateNumberOfParticles(canvas: HTMLCanvasElement) {
+    const {width, height} = canvas;
+    numberOfParticles.value = Math.floor((density/1000000) * width * height);
 }
 
 function calculateResolution() {
     if (canvas.value) {
         const {innerHeight, innerWidth} = window;
-        canvas.value.height = maxRes[1] > innerHeight ? innerHeight: maxRes[1];
-        canvas.value.width = maxRes[0] > innerWidth ? innerWidth: maxRes[0];
-        console.log({innerWidth, innerHeight});
+        canvas.value.height = backgroundCanvasResolution[1] > innerHeight ? innerHeight: backgroundCanvasResolution[1];
+        canvas.value.width = backgroundCanvasResolution[0] > innerWidth ? innerWidth: backgroundCanvasResolution[0];
 
-
-        aditionalCuadrants = calculateAditionalQuadrants();
-        const ctx = linkCanvas.getContext('2d')!;
-        gradientImage = ctx.createImageData(...maxResGradient);
-
-        linkCanvas.width = maxRes[0];
-        linkCanvas.height = maxRes[1];
-        //ctx.shadowBlur = 10;
+        linkCanvas.width = backgroundCanvasResolution[0];
+        linkCanvas.height = backgroundCanvasResolution[1];
     } 
 }
 
 
-function randomInCanvas(): [number, number] {
-    const x = Math.floor(Math.random() * canvas.value.width + 1);
-    const y = Math.floor(Math.random() * canvas.value.height + 1);
+function randomInCanvas(canvas: HTMLCanvasElement): [number, number] {
+    const x = Math.floor(Math.random() * canvas.width + 1);
+    const y = Math.floor(Math.random() * canvas.height + 1);
     return [x,y];
 }
 
-function randomSpeed(): [number, number] {
+function randomSpeed(maxSpeed: number, minSpeed: number): [number, number] {
     const scaledMinSpeed = minSpeed / (maxSpeed*2);
     const lerpSpeed = createLerp([-maxSpeed, maxSpeed])(x => {
         let y = 0;
@@ -120,162 +111,119 @@ function randomSpeed(): [number, number] {
     return [vx, vy];
 }
 
-function randomColor(): [number, number, number] {
+function randomColor(availableColors: [number, number, number][]): [number, number, number] {
     const index = Math.floor(Math.random() * availableColors.length);
     return availableColors[index];
 }
 
-function createParticles() {
-    particles = [];
+function createParticles(availableColors: [number, number, number][], numberOfParticles: number, canvas: HTMLCanvasElement): Particle[] {
+    const particles = [];
     for(let i = 0; i < numberOfParticles; i++) {
-        const color = randomColor(); 
+        const color = randomColor(availableColors); 
         particles.push({
             color,
             colorHSL: rgbToHsl(...color),
-            pos: randomInCanvas(),
+            pos: randomInCanvas(canvas),
             size: 10,
-            speed: randomSpeed()
+            speed: randomSpeed(maxSpeed, minSpeed)
         })
     }
+    return particles;
 }
 
-function distanceSquared(pointOne: [number, number], pointTwo: [number, number]) {
-    const x = pointTwo[0] - pointOne[0];
-    const y = pointTwo[1] - pointOne[1];
-    return x*x +y*y;
-}
-
-function toRgba(color: [number,number,number], alpha: number) {
-    return `rgb(${color[0]}, ${color[1]}, ${color[2]}, ${alpha})`;
-}
-
-function loopBoundary(particle: Particle) {
+function loopBoundary(boundary: [number, number], particle: Particle) {
 
     if (particle.pos[0] < 0) {
-        particle.pos[0] = canvas.value.width;
+        particle.pos[0] = boundary[0];
     }
-    if (particle.pos[0] > canvas.value.width) {
+    if (particle.pos[0] > boundary[0]) {
         particle.pos[0] = 0;
     }
     if (particle.pos[1] < 0) {
-        particle.pos[1] = canvas.value.height;
+        particle.pos[1] = boundary[1];
     }
-    if (particle.pos[1] > canvas.value.height) {
+    if (particle.pos[1] > boundary[1]) {
         particle.pos[1] = 0;
     }
 }
 
-function updateParticle(particle: Particle) {
-    particle.pos = [Math.floor(particle.pos[0]  + particle.speed[0]), Math.floor(particle.pos[1] + particle.speed[1])];
-    loopBoundary(particle);
+function updateParticle(canvas: HTMLCanvasElement, particle: Particle) {
+    particle.pos = [particle.pos[0]  + particle.speed[0],particle.pos[1] + particle.speed[1]];
+    const boundary = [canvas.width, canvas.height] as [number, number];
+    loopBoundary(boundary, particle);
 }
 
 
-
-
-function linkFromParticles(particleOne: Particle, particleTwo: Particle, dist: number) {
-    const ctx = canvas.value.getContext('2d')!;
-    const gradient = ctx.createLinearGradient(...particleOne.pos, ...particleTwo.pos);
-                const alpha = (createLerp([0, 1])( x => 1 - x*x)(dist /closenessRadiusSquared) );
-                gradient.addColorStop(0, toRgba(particleOne.color ,alpha));
-                gradient.addColorStop(1, toRgba(particleTwo.color, alpha));
-
+function linkFromParticles(particleOne: Particle, particleTwo: Particle, dist: number): Link {
     return {
-            from: particleOne,
-            to: particleTwo,
-            gradient,
+        from: particleOne,
+        to: particleTwo,
     }
 }
 
 
-/*
--+ 0+ ++
--0 00 +0
--- 0- +-
-*/
-
-function copyParticleOtherPosition(particle: Particle, newPos: [number, number]): Particle {
-    return {...particle, pos: newPos};
-}
-
-function calculateAditionalQuadrants(): [number, number][] {
-    const {width, height} = canvas.value;
-    return [
-        [-width, height], [0, height], [width, height],
-        [-width, 0], [0,0], [width, 0],
-        [-width, -height], [0, -height], [width, -height],
-    ];
-}
-
-
-function outsideLinks(particleOne: Particle, particleTwo: Particle) {
-    return aditionalCuadrants.reduce((acc, quadrant) => {
-        
-        const outsidePos = [particleOne.pos[0] + quadrant[0], particleOne.pos[1] + quadrant[1]] as [number, number];
-        const outsidePosInverse = [particleTwo.pos[0] - quadrant[0], particleTwo.pos[1] - quadrant[1]] as [number, number];
-        const distOne =  distanceSquared(outsidePos, particleTwo.pos)
-        if (distOne < closenessRadiusSquared) {
-            acc = [...acc, linkFromParticles(copyParticleOtherPosition(particleOne, outsidePos), particleTwo, distOne), linkFromParticles(copyParticleOtherPosition(particleTwo, outsidePosInverse), particleOne, distOne)];
-        }
-        return acc;
-    }, []  as Link[]);
-}
-
-function getLinks(): Link[] {
+function getLinks(canvas: HTMLCanvasElement): Link[] {
     //TODO Optimize this in the future
     const links: Link[] = [];
     for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
-            links.push(...outsideLinks(particles[i], particles[j]))
+            const particleOne = particles[i];
+            const particleTwo = particles[j];
+            for (let z = 0; z < 9; z++) {
+                // -1 to center the dilation matrix
+                const xDilation = ((z % 3) - 1) * canvas.width;
+                const yDilation = (Math.floor(z /3) - 1) * canvas.height;
+                const outsidePos = [particleOne.pos[0] + xDilation, particleOne.pos[1] + yDilation] as [number, number];
+                const outsidePosInverse = [particleTwo.pos[0] - xDilation, particleTwo.pos[1] - yDilation] as [number, number];
+                const distOne =  distanceSquared(outsidePos, particleTwo.pos);
+                const ctx = canvas.getContext('2d')!;
+                if (distOne < closenessRadiusSquared) {
+                    links.push(
+                        linkFromParticles(copyParticleOtherPosition(particleOne, outsidePos), particleTwo, distOne),
+                        linkFromParticles(copyParticleOtherPosition(particleTwo, outsidePosInverse), particleOne, distOne)
+                    );
+                }
+            }
         } 
     }
     return links;
 }
 
-function drawParticle(particle: Particle) {
-    const ctx = canvas.value.getContext('2d')!;
+function drawParticle(ctx: CanvasRenderingContext2D, particle: Particle) {
     const color = `rgb(${particle.color[0]}, ${particle.color[1]}, ${particle.color[2]})`;
     ctx.shadowColor = color;
     ctx.fillStyle = color;
-    ctx.fillRect(particle.pos[0] - particle.size/2, particle.pos[1] - particle.size/2, particle.size, particle.size);
+    ctx.fillRect(Math.floor(particle.pos[0] - particle.size/2), Math.floor(particle.pos[1] - particle.size/2), particle.size, particle.size);
 }
 
-function drawCircle(x: number,y: number,radius: number) {
-    const ctx = canvas.value.getContext('2d')!;
+function drawCircle(ctx: CanvasRenderingContext2D,  x: number,y: number,radius: number) {
     ctx.beginPath();
     ctx.arc(x,y, radius, 0, 2 * Math.PI);
     ctx.stroke();
 }
 
-function drawLinks(links: Link[]) {
-    const ctx = linkCanvas.getContext('2d')!;
+function drawLinks(ctx: CanvasRenderingContext2D, links: Link[]) {
     ctx.strokeStyle = "white";
     ctx.beginPath();
     for(let i = 0; i < links.length; i++ ) {
-        ctx.moveTo(...links[i].from.pos);
-        ctx.lineTo(...links[i].to.pos);
+        ctx.moveTo(Math.floor(links[i].from.pos[0]), Math.floor(links[i].from.pos[1]));
+        ctx.lineTo(Math.floor(links[i].to.pos[0]), Math.floor(links[i].to.pos[1]));
     }
     ctx.stroke(); 
-
 }
 
-const dilationMatrix = [
-    1,1,1,
-    1,1,1,
-    1,1,1
-]
-function drawBitMap(links: Link[]) {
-    const ctx = linkCanvas.getContext('2d')!;
+
+function generateGradientImage(ctx: CanvasRenderingContext2D, links: Link[], gradientWidth: DilationMatrix = {matrixInBinary: 0b111_111_111, size: 3}): ImageData {
     const lerper = createLerp([0, 1])(x => x);
     const alphaLerp = createLerp([255, 0])(easeInCubic);
-    const scaledClosenessRadiousSquared = closenessRadiusSquared / (resRatio * resRatio);
-    gradientImage = ctx.createImageData(...maxResGradient);
+    const scaledClosenessRadiousSquared = closenessRadiusSquared / (resRatio[0] * resRatio[1]);
+    let gradientImage = ctx.createImageData(...linkCanvasResolution);
+    const gradientMatrixSize = gradientWidth.size * gradientWidth.size;
 
     for(let link of links) {
-        const fromScaled = [Math.round(link.from.pos[0] / resRatio), Math.round(link.from.pos[1] / resRatio)] as [number, number];
-        const toScaled = [Math.round(link.to.pos[0] / resRatio), Math.round(link.to.pos[1] / resRatio)] as [number, number];
+        const fromScaled = [Math.round(link.from.pos[0] / resRatio[0]), Math.round(link.from.pos[1] / resRatio[1])] as [number, number];
+        const toScaled = [Math.round(link.to.pos[0] / resRatio[0]), Math.round(link.to.pos[1] / resRatio[1])] as [number, number];
         const totalDist = distanceSquared(fromScaled, toScaled);
-        const lines: any[] = [];
         const toScreen = (x: number, y: number) => {
             const distFrom = distanceSquared(fromScaled, [ x, y]);
             const distTo = distanceSquared([ x,  y], toScaled);
@@ -288,21 +236,25 @@ function drawBitMap(links: Link[]) {
                 Math.abs(alphaLerp(totalDist/scaledClosenessRadiousSquared))
             ];
             const middlDilationMatrix = 1;
-            for (let i = 0; i < dilationMatrix.length; i++) {
+            for (let i = 0; i < gradientMatrixSize; i++) {
                 const xDilation = (i % 3) - middlDilationMatrix;
                 const yDilation = Math.floor(i /3) - middlDilationMatrix;
-                const dilation = dilationMatrix[i]; 
-                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4] =  Math.floor(rgba[0]) * dilation;
-                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 1] = Math.floor(rgba[1]) * dilation;
-                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 2] = Math.floor(rgba[2]) * dilation;
-                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 3] = Math.floor(rgba[3]) * dilation;
+                const binaryIndex = Math.pow(2, i);
+                const dilation = (gradientWidth.matrixInBinary & binaryIndex) / binaryIndex;
+                gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4] =  Math.floor(rgba[0]) * dilation;
+                gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4 + 1] = Math.floor(rgba[1]) * dilation;
+                gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4 + 2] = Math.floor(rgba[2]) * dilation;
+                gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4 + 3] = Math.floor(rgba[3]) * dilation;
             }
             
         };
-            line(...fromScaled, ...toScaled, toScreen );
+        line(...fromScaled, ...toScaled, toScreen );
     }
+    return gradientImage;
+}
 
-    
+
+function drawGradient(ctx: CanvasRenderingContext2D, gradientImage: ImageData) {
     ctx.putImageData(gradientImage,0,0);
     // Now we have an unscaled version of our ImageData
     // let's make the compositing mode to 'copy' so that our next drawing op erases whatever was there previously
@@ -310,43 +262,34 @@ function drawBitMap(links: Link[]) {
     ctx.globalCompositeOperation = 'copy';
     // now we can draw ourself over ourself.
     ctx.drawImage(linkCanvas,
-    0,0, ...maxResGradient, // grab the ImageData part
-    0,0, ...maxRes // scale it
+    0,0, ...linkCanvasResolution, // grab the ImageData part
+    0,0, ...backgroundCanvasResolution // scale it
     );
     ctx.globalCompositeOperation = 'lighter';
 }
 function drawParticleDebug(particle: Particle) {
     const ctx = canvas.value.getContext('2d')!;
     ctx.strokeStyle = `rgba(${particle.color[0]}, ${particle.color[1]}, ${particle.color[2]}, 1)`;
-    drawCircle(...particle.pos, speedRadius);
-    drawCircle(...particle.pos, closenessRadius);
+    drawCircle(ctx, ...particle.pos, speedRadius);
+    drawCircle(ctx, ...particle.pos, closenessRadius);
 }
 function animate() {
     const ctx = canvas.value.getContext('2d')!;
     const ctxLinks = linkCanvas.getContext('2d')!;
     
-    //ctx.clearRect(0,0,canvas.value.width, canvas.value.height);
-    
-    //ctx.globalCompositeOperation = 'destination-atop';
-    //ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
-    //ctx.clearRect(0,0,canvas.value.width, canvas.value.height);
     //particles.forEach(drawParticleDebug);
-    particles.forEach(updateParticle);
+    particles.forEach(particle => updateParticle(canvas.value, particle));
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
-    
-    ctx.globalCompositeOperation = 'source-over';
-    //particles.forEach(drawParticle);
+    //particles.forEach(particle => drawParticle(ctx, particle));
     ctx.fillStyle = "rgba(24,24,24,1)";
-    //ctxLinks.globalCompositeOperation = 'source-in';
-    const links = getLinks();
-    drawBitMap(links);
+    const links = getLinks(canvas.value);
+    const gradientImage = generateGradientImage(ctxLinks, links);
+    drawGradient(ctxLinks, gradientImage);
     ctxLinks.globalCompositeOperation = 'destination-in';
-    drawLinks(links);
+    drawLinks(ctxLinks, links);
     ctx.globalCompositeOperation = 'lighten';
     ctx.drawImage(ctxLinks.canvas, 0, 0); 
-    
-    
     //particles.forEach(drawParticle);
     
     window.requestAnimationFrame(animate);
@@ -376,14 +319,23 @@ window.addEventListener('mouseout', event => {
 
 window.addEventListener('resize', event => {
     calculateResolution();
-    calculateNumberOfParticles();
-    createParticles();
+    calculateNumberOfParticles(canvas.value);
+    particles = createParticles(availableColors, numberOfParticles.value, canvas.value);
 });
+
+window.addEventListener('keyup', event => {
+    if (event.key === "F12") {
+        debugEnabled.value = !debugEnabled.value;    
+    }
+})
 </script>
 <template>
     <canvas id="background" ref="canvas">
 
     </canvas>
+    <div id="debugInfo" v-if="debugEnabled">
+        <span>numberOfParticles : {{numberOfParticles}}</span>
+    </div>
 </template>
 <style scoped>
 canvas {
@@ -393,12 +345,13 @@ canvas {
     z-index: -99999;
     width: 100vw;
     height: 100vh;
+    cursor: none;
 }
-#test {
-    width: 100px;
-    height: 100px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
+#debugInfo {
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    color: black;
 }
 </style>
