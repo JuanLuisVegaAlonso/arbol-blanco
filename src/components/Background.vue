@@ -28,7 +28,7 @@ const availableColors:[number, number, number][] = [
 ]
 
 const resCanvas = 1024;
-const resImage = 128;
+const resImage = 256;
 const resRatio = resCanvas/ resImage;
 
 const maxRes: [number, number] = [resCanvas, resCanvas];
@@ -64,7 +64,6 @@ watchEffect(() => {
         calculateResolution();
         calculateNumberOfParticles();
         const ctx = canvas.value.getContext('2d')!;
-        //ctx.globalCompositeOperation = "destination-out";
         createParticles();
         particles.forEach(drawParticle);
         window.requestAnimationFrame(animate);
@@ -260,10 +259,10 @@ function drawLinks(links: Link[]) {
 
 }
 
-const qud = [
-        [-1, 1], [0, 1], [1, 1],
-        [-1, 0], [0,0], [1, 0],
-        [-1, -1], [0, -1], [1, -1],
+const dilationMatrix = [
+    1,1,1,
+    1,1,1,
+    1,1,1
 ]
 function drawBitMap(links: Link[]) {
     const ctx = linkCanvas.getContext('2d')!;
@@ -288,16 +287,19 @@ function drawBitMap(links: Link[]) {
                 Math.abs(portionColorFrom * link.from.color[2] + portionColorTo * link.to.color[2]),
                 Math.abs(alphaLerp(totalDist/scaledClosenessRadiousSquared))
             ];
+            const middlDilationMatrix = 1;
+            for (let i = 0; i < dilationMatrix.length; i++) {
+                const xDilation = (i % 3) - middlDilationMatrix;
+                const yDilation = Math.floor(i /3) - middlDilationMatrix;
+                const dilation = dilationMatrix[i]; 
+                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4] =  Math.floor(rgba[0]) * dilation;
+                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 1] = Math.floor(rgba[1]) * dilation;
+                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 2] = Math.floor(rgba[2]) * dilation;
+                gradientImage.data[(y + yDilation) * maxResGradient[0] * 4 + (x + xDilation) * 4 + 3] = Math.floor(rgba[3]) * dilation;
+            }
             
-            lines.push([x,y]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4] =  Math.floor(rgba[0]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 1] = Math.floor(rgba[1]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 2] = Math.floor(rgba[2]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 3] = Math.floor(rgba[3]);
         };
-        for (let q of qud) {
-            line(fromScaled[0] + q[0], fromScaled[1] + q[1], toScaled[0] + q[0], toScaled[1] + q[1], toScreen );
-        }
+            line(...fromScaled, ...toScaled, toScreen );
     }
 
     
@@ -335,7 +337,7 @@ function animate() {
     
     ctx.globalCompositeOperation = 'source-over';
     //particles.forEach(drawParticle);
-    ctx.fillStyle = "rgba(24,24,24,0.6)";
+    ctx.fillStyle = "rgba(24,24,24,1)";
     //ctxLinks.globalCompositeOperation = 'source-in';
     const links = getLinks();
     drawBitMap(links);
