@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { createLerp, rgbToHsl, rgbToHsv, hslToRgb } from '@/maths';
+import { createLerp, easeOutCubic,  easeInCubic} from '@/maths';
 import { ref, watchEffect } from 'vue';
+import {rgbToHsl, line } from '@/canvasUtils';
 
 type Particle = {
     pos: [number, number];
@@ -27,20 +28,19 @@ const availableColors:[number, number, number][] = [
 ]
 
 const resCanvas = 1024;
-const resImage = 16;
+const resImage = 128;
 const resRatio = resCanvas/ resImage;
 
 const maxRes: [number, number] = [resCanvas, resCanvas];
 const maxResGradient: [number, number] = [resImage, resImage];
 
-const density = 20;
+const density = 25;
 
 let numberOfParticles = 30;
-const maxSpeed = 1.75;
+const maxSpeed = 3;
 const minSpeed = 1;
 let particles: Particle[] = [];
 const closenessRadius = 200;
-const colorRadius = Math.pow(200, 2);
 const closenessRadiusSquared = closenessRadius * closenessRadius;
 const speedRadius = 10;
 let gradientImage: ImageData;
@@ -102,14 +102,22 @@ function randomInCanvas(): [number, number] {
 }
 
 function randomSpeed(): [number, number] {
-    let vx = Math.random() * maxSpeed * 2 - maxSpeed;
-    let vy = Math.random() * maxSpeed * 2 - maxSpeed;
-    if (Math.abs(vx) < minSpeed) {
-        vx = minSpeed * Math.sign(vx);
-    }
-    if (Math.abs(vy) < minSpeed) {
-        vy = minSpeed * Math.sign(vy);
-    }
+    const scaledMinSpeed = minSpeed / (maxSpeed*2);
+    const lerpSpeed = createLerp([-maxSpeed, maxSpeed])(x => {
+        let y = 0;
+        if (x > -scaledMinSpeed && x < scaledMinSpeed) {
+            if (x > 0) {
+                y = scaledMinSpeed;
+            } else {
+                y = -scaledMinSpeed;
+            }
+        } else {
+            y = 1 - (2 * x - 1) * (2 * x - 1);
+        }
+        return y;
+    });
+    let vx = lerpSpeed(Math.random());
+    let vy = lerpSpeed(Math.random());
     return [vx, vy];
 }
 
@@ -252,49 +260,47 @@ function drawLinks(links: Link[]) {
 
 }
 
-function drawBitMap() {
+const qud = [
+        [-1, 1], [0, 1], [1, 1],
+        [-1, 0], [0,0], [1, 0],
+        [-1, -1], [0, -1], [1, -1],
+]
+function drawBitMap(links: Link[]) {
     const ctx = linkCanvas.getContext('2d')!;
-    const lerper = createLerp([1, 0])(x => 1 - ((1 - x) *(1 - x) *(1 - x)));
-    for (let x = 0; x < maxResGradient[0]; x++) {
-        for(let y = 0; y < maxResGradient[1]; y++) {
-            let h = 0;
-            let s = 0;
-            let l = 0;
-            const xScaled = resRatio * x;
-            const yScaled = resRatio * y;
-            let color;
-            for (let particleIndex = 0; particleIndex < particles.length; particleIndex++) {
-                for (let indexAdditionalQuadrant = 0; indexAdditionalQuadrant <aditionalCuadrants.length; indexAdditionalQuadrant++ ) {
-                    
-                    let dist = distanceSquared([xScaled + aditionalCuadrants[indexAdditionalQuadrant][0],yScaled + aditionalCuadrants[indexAdditionalQuadrant][1]], particles[particleIndex].pos);
-                    if (dist >= colorRadius) {
-                        dist = colorRadius;
-                    }
-                    const currentH = lerper(dist/ colorRadius) * particles[particleIndex].colorHSL[0];
-                    const currentS = lerper(dist/ colorRadius) * particles[particleIndex].colorHSL[1];
-                    const currentL = lerper(dist/ colorRadius) * particles[particleIndex].colorHSL[2];
-                    if (h < currentH) {
-                        h = currentH;
-                        color = particles[particleIndex].color;
-                    }
-                    if (s < currentS) {
-                        s = currentS;
-                    }
-                    if (l < currentL) {
-                        l = currentL;
-                    }
-                }
-            }
+    const lerper = createLerp([0, 1])(x => x);
+    const alphaLerp = createLerp([255, 0])(easeInCubic);
+    const scaledClosenessRadiousSquared = closenessRadiusSquared / (resRatio * resRatio);
+    gradientImage = ctx.createImageData(...maxResGradient);
 
+    for(let link of links) {
+        const fromScaled = [Math.round(link.from.pos[0] / resRatio), Math.round(link.from.pos[1] / resRatio)] as [number, number];
+        const toScaled = [Math.round(link.to.pos[0] / resRatio), Math.round(link.to.pos[1] / resRatio)] as [number, number];
+        const totalDist = distanceSquared(fromScaled, toScaled);
+        const lines: any[] = [];
+        const toScreen = (x: number, y: number) => {
+            const distFrom = distanceSquared(fromScaled, [ x, y]);
+            const distTo = distanceSquared([ x,  y], toScaled);
+            const portionColorTo= lerper(distFrom/totalDist);
+            const portionColorFrom = lerper(distTo/totalDist);
+            const rgba = [
+                Math.abs(portionColorFrom * link.from.color[0] + portionColorTo * link.to.color[0]),
+                Math.abs(portionColorFrom * link.from.color[1] + portionColorTo * link.to.color[1]),
+                Math.abs(portionColorFrom * link.from.color[2] + portionColorTo * link.to.color[2]),
+                Math.abs(alphaLerp(totalDist/scaledClosenessRadiousSquared))
+            ];
             
-            const rgb = hslToRgb(h/255,1,0.5)
-
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4] =  Math.abs(rgb[0]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 1] = Math.abs(rgb[1]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 2] = Math.abs(rgb[2]);
-            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 3] = 255;
+            lines.push([x,y]);
+            gradientImage.data[y * maxResGradient[0] * 4 + x * 4] =  Math.floor(rgba[0]);
+            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 1] = Math.floor(rgba[1]);
+            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 2] = Math.floor(rgba[2]);
+            gradientImage.data[y * maxResGradient[0] * 4 + x * 4 + 3] = Math.floor(rgba[3]);
+        };
+        for (let q of qud) {
+            line(fromScaled[0] + q[0], fromScaled[1] + q[1], toScaled[0] + q[0], toScaled[1] + q[1], toScreen );
         }
     }
+
+    
     ctx.putImageData(gradientImage,0,0);
     // Now we have an unscaled version of our ImageData
     // let's make the compositing mode to 'copy' so that our next drawing op erases whatever was there previously
@@ -324,21 +330,23 @@ function animate() {
     //ctx.clearRect(0,0,canvas.value.width, canvas.value.height);
     //particles.forEach(drawParticleDebug);
     particles.forEach(updateParticle);
-    
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
     
     ctx.globalCompositeOperation = 'source-over';
     //particles.forEach(drawParticle);
-    ctx.fillStyle = "rgba(24,24,24,0.5)";
+    ctx.fillStyle = "rgba(24,24,24,0.6)";
     //ctxLinks.globalCompositeOperation = 'source-in';
-    drawBitMap();
+    const links = getLinks();
+    drawBitMap(links);
     ctxLinks.globalCompositeOperation = 'destination-in';
-    drawLinks(getLinks());
-    ctx.globalCompositeOperation = 'screen';
+    drawLinks(links);
+    ctx.globalCompositeOperation = 'lighten';
     ctx.drawImage(ctxLinks.canvas, 0, 0); 
     
-    ctx.globalCompositeOperation = 'destination-out';
+    
     //particles.forEach(drawParticle);
-    ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
+    
     window.requestAnimationFrame(animate);
 }
 
