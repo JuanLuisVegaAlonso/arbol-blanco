@@ -2,6 +2,10 @@
 import { createLerp, distanceSquared, easeOutCubic,  easeInCubic} from '@/maths';
 import { ref, watchEffect } from 'vue';
 import {rgbToHsl, line } from '@/canvasUtils';
+import type { IsPositionable, SpatialHash } from '@/spatialHash';
+import {createSpatialHash, searchInRadius, addObject} from '@/spatialHash';
+
+
 
 type Particle = {
     pos: [number, number];
@@ -43,6 +47,7 @@ const density = 40;
 const numberOfParticles = ref(30);
 const maxSpeed = 3;
 const minSpeed = 0.25;
+const gridSizeSpatialHash = 100;
 let particles: Particle[] = [];
 const closenessRadius = 200;
 const closenessRadiusSquared = closenessRadius * closenessRadius;
@@ -54,12 +59,15 @@ linkCanvas.width = backgroundCanvasResolution[0];
 linkCanvas.height = backgroundCanvasResolution[1];
 
 let animationRequest: number;
+let spatialHash: SpatialHash;
 watchEffect(() => {
     if (canvas.value) {
         calculateResolution();
         calculateNumberOfParticles(canvas.value);
         const ctx = canvas.value.getContext('2d')!;
         particles = createParticles(availableColors, numberOfParticles.value, canvas.value);
+        spatialHash = createSpatialHash(backgroundCanvasResolution, gridSizeSpatialHash);
+        particles.forEach(particle => addObject(spatialHash, particle));
         particles.forEach(particle => drawParticle(ctx, particle));
         if (!animationRequest) {
             animationRequest = window.requestAnimationFrame(animate);
@@ -154,7 +162,7 @@ function updateParticle(canvas: HTMLCanvasElement, particle: Particle) {
 }
 
 
-function linkFromParticles(particleOne: Particle, particleTwo: Particle, dist: number): Link {
+function linkFromParticles(particleOne: Particle, particleTwo: Particle): Link {
     return {
         from: particleOne,
         to: particleTwo,
@@ -162,30 +170,32 @@ function linkFromParticles(particleOne: Particle, particleTwo: Particle, dist: n
 }
 
 
-function getLinks(canvas: HTMLCanvasElement): Link[] {
+function getLinks(canvas: HTMLCanvasElement, spatialHash: SpatialHash): Link[] {
     //TODO Optimize this in the future
     const links: Link[] = [];
+
     for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-            const particleOne = particles[i];
-            const particleTwo = particles[j];
-            for (let z = 0; z < 9; z++) {
-                // -1 to center the dilation matrix
-                const xDilation = ((z % 3) - 1) * canvas.width;
-                const yDilation = (Math.floor(z /3) - 1) * canvas.height;
-                const outsidePos = [particleOne.pos[0] + xDilation, particleOne.pos[1] + yDilation] as [number, number];
-                const outsidePosInverse = [particleTwo.pos[0] - xDilation, particleTwo.pos[1] - yDilation] as [number, number];
-                const distOne =  distanceSquared(outsidePos, particleTwo.pos);
-                const ctx = canvas.getContext('2d')!;
-                if (distOne < closenessRadiusSquared) {
-                    links.push(
-                        linkFromParticles(copyParticleOtherPosition(particleOne, outsidePos), particleTwo, distOne),
-                        linkFromParticles(copyParticleOtherPosition(particleTwo, outsidePosInverse), particleOne, distOne)
-                    );
+        const particleOne = particles[i];
+        for (let z = 0; z < 9; z++) {
+            // -1 to center the dilation matrix
+            const xDilation = ((z % 3) - 1) * canvas.width;
+            const yDilation = (Math.floor(z /3) - 1) * canvas.height;
+            const outsidePos = [particleOne.pos[0] + xDilation, particleOne.pos[1] + yDilation] as [number, number];
+            const nearParticles = searchInRadius(spatialHash,  outsidePos, closenessRadius);
+            for (let j = 0; j < nearParticles.length; j++) {
+                const particleTwo = nearParticles[j] as Particle;
+                if (particleOne !== particleTwo) {
+                    const outsidePosInverse = [particleTwo.pos[0] - xDilation, particleTwo.pos[1] - yDilation] as [number, number];
+                    links.push(linkFromParticles(copyParticleOtherPosition(particleOne, outsidePos), particleTwo));
+                    if (xDilation !== 0 || yDilation !==0 ){
+                        links.push(linkFromParticles(copyParticleOtherPosition(particleTwo, outsidePosInverse), particleOne));
+                    }
                 }
             }
-        } 
+        }
     }
+    
+
     return links;
 }
 
@@ -279,11 +289,13 @@ function animate() {
     
     //particles.forEach(drawParticleDebug);
     particles.forEach(particle => updateParticle(canvas.value, particle));
+    spatialHash = createSpatialHash(backgroundCanvasResolution, gridSizeSpatialHash);
+    particles.forEach(particle => addObject(spatialHash, particle));
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
-    //particles.forEach(particle => drawParticle(ctx, particle));
+    particles.forEach(particle => drawParticle(ctx, particle));
     ctx.fillStyle = "rgba(24,24,24,1)";
-    const links = getLinks(canvas.value);
+    const links = getLinks(canvas.value, spatialHash);
     const gradientImage = generateGradientImage(ctxLinks, links);
     drawGradient(ctxLinks, gradientImage);
     ctxLinks.globalCompositeOperation = 'destination-in';
@@ -292,7 +304,7 @@ function animate() {
     ctx.drawImage(ctxLinks.canvas, 0, 0); 
     //particles.forEach(drawParticle);
     
-    window.requestAnimationFrame(animate);
+    animationRequest = window.requestAnimationFrame(animate);
 }
 
 let playerParticle: Particle | void;
