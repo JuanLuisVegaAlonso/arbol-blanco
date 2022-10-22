@@ -267,7 +267,7 @@ function generateGradientImage(ctx: CanvasRenderingContext2D, links: Link[], gra
             for (let i = 0; i < gradientMatrixSize; i++) {
                 const xDilation = (i % 3) - middlDilationMatrix;
                 const yDilation = Math.floor(i /3) - middlDilationMatrix;
-                const binaryIndex = Math.pow(2, i);
+                let binaryIndex = 1 << i;
                 const dilation = (gradientWidth.matrixInBinary & binaryIndex) / binaryIndex;
                 gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4] =  Math.floor(rgba[0]) * dilation;
                 gradientImage.data[(y + yDilation) * linkCanvasResolution[0] * 4 + (x + xDilation) * 4 + 1] = Math.floor(rgba[1]) * dilation;

@@ -51,7 +51,7 @@ export function distanceSquared(pointOne: [number, number], pointTwo: [number, n
     return x*x +y*y;
 }
 export function easeInOutCubic(x: number): number {
-    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    return x < 0.5 ? 4 * x * x * x : 1 - (-2 * x + 2) * (-2 * x + 2) * (-2 * x + 2)  / 2;
 }
 
 export function easeInOutQuad(x: number): number {
