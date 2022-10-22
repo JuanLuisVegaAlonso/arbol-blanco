@@ -7,6 +7,7 @@ import { ref, watch, watchEffect } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import CreatePlayer from '../components/CreatePlayer.vue';
 import Animatext from '../components/generic/Animatext.vue';
+import RoomHandler from '../components/RoomHandler.vue';
 
 const playerStore = usePlayerStore();
 const roomStore = useRoomStore();
@@ -16,6 +17,7 @@ const router = useRouter();
 const roomName = route.params.roomName as string;
 const loading = ref(false);
 const roomExists = ref(false);
+const roomNotFound = ref(false);
 roomStore.roomName = roomName;
 
 if (playerStore.player) {
@@ -23,7 +25,7 @@ if (playerStore.player) {
     watchEffect(() => {
         loading.value = reactive.loading.value;
         roomExists.value = reactive.roomExists.value;
-        if (!loading.value && roomExists.value && commsStore.client) {
+        if (!loading.value && commsStore.client) {
             router.push({path: "/"});
         }
     });
@@ -35,7 +37,7 @@ watch(() => playerStore.player, () => {
     watchEffect(() => {
         loading.value = reactive.loading.value;
         roomExists.value = reactive.roomExists.value;
-        if (!loading.value && roomExists.value && commsStore.client) {
+        if (!loading.value && commsStore.client) {
             router.push({path: "/"});
         }
     });

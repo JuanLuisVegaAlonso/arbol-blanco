@@ -12,6 +12,7 @@ export function joinRoomFeature() {
 
     const loading = ref(false);
     const roomExists = ref(false);
+    const roomNotFound = ref(false);
 
     commsStore.isServer = false;
     loading.value = true;
@@ -41,6 +42,8 @@ export function joinRoomFeature() {
         switch (peerError.type) {
             case PeerErrorType.NOT_FOUND: 
             roomExists.value = false;
+            roomNotFound.value = true;
+            console.log("Not found");
             break;
             case PeerErrorType.UNKNOWN:
                 console.error("Undefined error", peerError.message);
@@ -52,5 +55,5 @@ export function joinRoomFeature() {
         console.log(error)},
     ).then(() => {loading.value = false});
 
-    return {loading, roomExists};
+    return {loading, roomExists, roomNotFound};
 }
