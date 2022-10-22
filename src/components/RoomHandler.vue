@@ -22,6 +22,10 @@ let loading = ref(false);
 
 
 function createRoom() {
+    validName.value = evalue(roomStore.roomName, required, validPeerId);
+    if (!validName.value) {
+        return;
+    }
     roomStore.room = newRoom(roomStore.roomName, playerStore.player);
     commsStore.isServer = true;
     if (commsStore.client) {
@@ -85,6 +89,10 @@ function createRoom() {
 const roomExists = ref(true);
 
 function joinRoom() {
+    validName.value = evalue(roomStore.roomName, required, validPeerId);
+    if (!validName.value) {
+        return;
+    }
     commsStore.isServer = false;
     loading.value = true;
     roomExists.value = true
@@ -129,11 +137,8 @@ function joinRoom() {
 const validName = ref(true);
 
 roomStore.$subscribe((mutation, state) => {
-    console.log(state)
-    if (state.roomName) {
-        validName.value = evalue(state.roomName, required, validPeerId);
-    }});
-
+    validName.value = evalue(state.roomName, required, validPeerId);
+});
 </script>
 
 

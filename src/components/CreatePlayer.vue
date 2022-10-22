@@ -19,10 +19,8 @@ function createPlayer() {
 }
 
 playerStore.$subscribe((mutation, state) => {
-    console.log(state)
-    if (state.name !== undefined) {
-        validName.value = evalue(state.name, required, validPeerId);
-    }});
+    validName.value = evalue(state.name, required, validPeerId);
+});
 
 </script>
 
