@@ -74,7 +74,7 @@ export function searchInRadius(spatialHash: SpatialHash, from: Position,  radius
                 for(let bucketIndex= 0; bucketIndex < bucket.length; bucketIndex++) {
                     const positionable = bucket[bucketIndex];
                     const dist = distanceSquared(from, positionable.pos);
-                    if (dist < radiusSquared) {
+                    if (dist <= radiusSquared) {
                         positionables.push(positionable);
                     }
                 }
