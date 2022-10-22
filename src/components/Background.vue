@@ -2,8 +2,8 @@
 import { createLerp, distanceSquared, easeOutCubic,  easeInCubic, easeInOutCubic, easeInOutQuad} from '@/maths';
 import { ref, watchEffect } from 'vue';
 import {rgbToHsl, line } from '@/canvasUtils';
-import type { IsPositionable, SpatialHash } from '@/spatialHash';
-import {createSpatialHash, searchInRadius, addObject} from '@/spatialHash';
+import type { IsPositionable, Position, SpatialHash } from '@/spatialHash';
+import {createSpatialHash, searchInRadius, addObject, unhashHash} from '@/spatialHash';
 
 
 
@@ -46,12 +46,12 @@ const resImage = 1024;
 const backgroundCanvasResolution: [number, number] = [2560, 1440];
 const linkCanvasResolution: [number, number] = [resImage, resImage];
 const resRatio = [backgroundCanvasResolution[0]/ linkCanvasResolution[0], backgroundCanvasResolution[1]/ linkCanvasResolution[1]];
-const density = 20;
+const density = 25;
 
 const numberOfParticles = ref(30);
 const maxSpeed = 2;
 const minSpeed = 0.25;
-const gridSizeSpatialHash = 100;
+const cellSizeSpatialHash = 100;
 let particles: Particle[] = [];
 const closenessRadius =  200;
 const closenessRadiusSquared = closenessRadius * closenessRadius;
@@ -70,7 +70,7 @@ watchEffect(() => {
         calculateNumberOfParticles(canvas.value);
         const ctx = canvas.value.getContext('2d')!;
         particles = createParticles(availableColors, numberOfParticles.value, canvas.value);
-        spatialHash = createSpatialHash(backgroundCanvasResolution, gridSizeSpatialHash);
+        spatialHash = createSpatialHash(backgroundCanvasResolution, cellSizeSpatialHash);
         particles.forEach(particle => addObject(spatialHash, particle));
         particles.forEach(particle => drawParticle(ctx, particle));
         if (!animationRequest) {
@@ -226,6 +226,18 @@ function drawLinks(ctx: CanvasRenderingContext2D, links: Link[]) {
     ctx.stroke(); 
 }
 
+function drawSpatialHash(ctx: CanvasRenderingContext2D, spatialHash: SpatialHash, boundary: Position) {
+    const { cellSize , buckets} = spatialHash;
+    ctx.strokeStyle = "white";
+    ctx.beginPath();
+    const bucketsHash = Object.keys(buckets);
+    for(let bucket of bucketsHash) {
+        const position = unhashHash(cellSize, Number(bucket));
+        ctx.strokeRect(...position, cellSize, cellSize);
+    }
+    ctx.stroke();
+}
+
 
 function generateGradientImage(ctx: CanvasRenderingContext2D, links: Link[], gradientWidth: DilationMatrix = {matrixInBinary: 0b111_111_111, size: 3}): ImageData {
     const lerper = createLerp([0, 1])(x => x);
@@ -303,7 +315,7 @@ function animate() {
     
     
     particles.forEach(particle => updateParticle(canvas.value, particle));
-    spatialHash = createSpatialHash(backgroundCanvasResolution, gridSizeSpatialHash);
+    spatialHash = createSpatialHash(backgroundCanvasResolution, cellSizeSpatialHash);
     particles.forEach(particle => addObject(spatialHash, particle));
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillRect(0,0,canvas.value.width, canvas.value.height);
@@ -318,6 +330,7 @@ function animate() {
     ctx.drawImage(ctxLinks.canvas, 0, 0); 
     //particles.forEach(drawParticle);
     //particles.forEach(drawParticleDebug);
+    //drawSpatialHash(ctx, spatialHash, [canvas.value.width, canvas.value.height])
     animationRequest = window.requestAnimationFrame(animate);
 }
 

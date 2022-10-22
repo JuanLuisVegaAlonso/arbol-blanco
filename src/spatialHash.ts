@@ -5,7 +5,7 @@ export type IsPositionable ={
     pos: Position
 }
 export type SpatialHash = {
-    values: {[key: number]: IsPositionable[]};
+    buckets: {[key: number]: IsPositionable[]};
     cellSize: number;
 }
 
@@ -14,9 +14,16 @@ function hashScaledPosition(positionScaled: Position, cellSize: number): number 
 }
 
 export function hashPosition(positionable: IsPositionable, cellSize: number): number {
-    const xScaled = Math.floor(positionable.pos[0]  / cellSize) * cellSize;
-    const yScaled = Math.floor(positionable.pos[1] / cellSize ) * cellSize;
+    const xScaled = Math.floor(positionable.pos[0]  / cellSize) ;
+    const yScaled = Math.floor(positionable.pos[1] / cellSize );
     return hashScaledPosition([xScaled, yScaled],cellSize);
+}
+
+export function unhashHash(cellSize: number, hash: number): Position {
+    return [
+        (hash % cellSize) * cellSize,
+        Math.floor(hash / cellSize) * cellSize
+    ]
 }
 export function createSpatialHash(gridSize: Position, cellSize: number): SpatialHash {
     const totalSize = gridSize[0] * gridSize[1];
@@ -25,18 +32,18 @@ export function createSpatialHash(gridSize: Position, cellSize: number): Spatial
     }
     return {
         cellSize,
-        values: {}
+        buckets: {}
     }
 }
 
 export function addObject(spatialHash: SpatialHash, object: IsPositionable) {
     const positionHash = hashPosition(object, spatialHash.cellSize);
-    let bucket = spatialHash.values[positionHash];
+    let bucket = spatialHash.buckets[positionHash];
     if (!bucket) {
         bucket = [];
     }
     bucket.push(object);
-    spatialHash.values[positionHash] = bucket;
+    spatialHash.buckets[positionHash] = bucket;
 }
 
 export function searchInRadius(spatialHash: SpatialHash, from: Position,  radius: number): IsPositionable[] {
@@ -58,18 +65,18 @@ export function searchInRadius(spatialHash: SpatialHash, from: Position,  radius
     const maxX = currentX + scaledRadius;
     
     const positionables: IsPositionable[] = [];
-    while (currentX <= maxX) {
+    while (currentX <= maxX ) {
         const maxY = Math.floor((Math.sqrt(radius*radius - (currentX * cellSize - scaledX*cellSize) * (currentX * cellSize - scaledX*cellSize)) + scaledY * cellSize) / cellSize);
         for (let currentY = scaledY; currentY < maxY; currentY++) {
             for (let q = 0; q < cuadrants.length; q++) {
-                const bucket = spatialHash.values[hashScaledPosition([cellSize * (scaledX + ((currentX  - scaledX) * cuadrants[q][0])), cellSize * ( scaledY + (currentY - scaledY )* cuadrants[q][1])], spatialHash.cellSize)];
+                const bucket = spatialHash.buckets[hashScaledPosition([(scaledX + ((currentX  - scaledX) * cuadrants[q][0])), ( scaledY + (currentY - scaledY )* cuadrants[q][1])], spatialHash.cellSize)];
                 if (bucket) {
                     positionables.push(...bucket);
                 }
             }
         }
         for (let q = 0; q < cuadrants.length; q++) {
-            const bucket = spatialHash.values[hashScaledPosition([cellSize * (scaledX + ((currentX  - scaledX) * cuadrants[q][0])), cellSize * ( scaledY + (maxY - scaledY )* cuadrants[q][1])], spatialHash.cellSize)];
+            const bucket = spatialHash.buckets[hashScaledPosition([ (scaledX + ((currentX  - scaledX) * cuadrants[q][0])), ( scaledY + ((maxY) - scaledY )* cuadrants[q][1])], spatialHash.cellSize)];
             if (bucket) {
                 for(let bucketIndex= 0; bucketIndex < bucket.length; bucketIndex++) {
                     const positionable = bucket[bucketIndex];
